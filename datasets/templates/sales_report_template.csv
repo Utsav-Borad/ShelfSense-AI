@@ -1,0 +1,2 @@
+invoice_number,barcode,sale_date,quantity_sold,selling_price,discount,total_amount
+INV-001,890100000001,2026-08-01,2,45.00,0.00,90.00

@@ -1,0 +1,2 @@
+invoice_number,barcode,product_name,supplier_name,purchase_date,purchase_price,quantity,batch_number,expiry_date
+PUR-3001,0012345,Fresh Milk 500ml,,2026-07-20,22.00,24,MILK-0720,2026-08-05

@@ -1,0 +1,2 @@
+invoice_number,barcode,product_name,supplier_name,purchase_date,purchase_price,quantity,batch_number,expiry_date
+PUR-001,890100000001,Sample Product,Sample Supplier,2026-07-25,32.00,24,BATCH-001,2027-07-24
