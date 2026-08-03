@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -34,8 +35,17 @@ class CsvEngine:
             report = ValidationReport(0, [ValidationError("invalid_file_type", "Only .csv files are accepted.")])
             return ProcessedCsv(report, None)
         try:
-            dataframe = pd.read_csv(path, dtype="string", keep_default_na=False)
-        except (OSError, UnicodeDecodeError, pd.errors.EmptyDataError, pd.errors.ParserError) as error:
+            with path.open("r", encoding="utf-8-sig", newline="") as source_file:
+                header = next(csv.reader(source_file, strict=True), None)
+            if not header:
+                report = ValidationReport(0, [ValidationError("empty_file", "CSV must contain a header and at least one data row.")])
+                return ProcessedCsv(report, None)
+            normalized_header = [column.strip() for column in header]
+            if len(set(normalized_header)) != len(normalized_header):
+                report = ValidationReport(0, [ValidationError("duplicate_columns", "CSV contains duplicate column headers.")])
+                return ProcessedCsv(report, None)
+            dataframe = pd.read_csv(path, dtype="string", keep_default_na=False, encoding="utf-8-sig")
+        except (OSError, UnicodeError, csv.Error, pd.errors.EmptyDataError, pd.errors.ParserError) as error:
             report = ValidationReport(0, [ValidationError("invalid_csv", f"CSV could not be read: {error}")])
             return ProcessedCsv(report, None)
         return self.process_dataframe(report_type, dataframe)

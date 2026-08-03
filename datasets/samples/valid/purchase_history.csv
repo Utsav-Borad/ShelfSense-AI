@@ -1,0 +1,5 @@
+invoice_number,barcode,product_name,supplier_name,purchase_date,purchase_price,quantity,batch_number,expiry_date
+PUR-2001,0012345,Fresh Milk 500ml,Dairy Fresh Supplies,2026-07-20,22.00,24,MILK-0720,2026-08-05
+PUR-2002,0098765,Whole Wheat Bread,Bakery Direct,2026-07-23,48.00,12,BREAD-0723,2026-08-04
+PUR-2003,0054321,Breakfast Cereal,Grocery Wholesale,2026-06-15,85.00,48,CEREAL-0615,2027-06-14
+PUR-2004,0077777,Herbal Shampoo,Care Products Ltd,2026-07-10,130.00,20,SHAMP-0710,2028-07-09

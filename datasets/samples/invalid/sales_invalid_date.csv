@@ -1,0 +1,2 @@
+invoice_number,barcode,sale_date,quantity_sold,selling_price,discount,total_amount
+INV-3001,0012345,invalid-date,2,30.00,0.00,60.00
