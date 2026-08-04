@@ -1,0 +1,1 @@
+export default function LoadingSpinner({ label = 'Loading' }) { return <div className="loading-state" role="status"><span className="spinner-border"/><span className="visually-hidden">{label}</span></div>; }

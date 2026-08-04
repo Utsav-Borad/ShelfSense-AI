@@ -1,0 +1,1 @@
+export default function Table({ columns = [], children, className = '' }) { return <div className={`table-responsive app-table ${className}`}><table className="table mb-0"><thead><tr>{columns.map((column) => <th key={column}>{column}</th>)}</tr></thead><tbody>{children}</tbody></table></div>; }

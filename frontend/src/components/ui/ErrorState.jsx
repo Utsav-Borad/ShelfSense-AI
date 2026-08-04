@@ -1,0 +1,1 @@
+export default function ErrorState({ title = 'Something went wrong', description = 'Please try again shortly.' }) { return <div className="state-panel error-state"><i className="bi bi-exclamation-circle"/><h3>{title}</h3><p>{description}</p></div>; }

@@ -1,0 +1,1 @@
+import ErrorPage from './ErrorPage'; export default function ServerErrorPage() { return <ErrorPage code="500" title="Unexpected error" description="Something went wrong on our side. Please try again."/>; }

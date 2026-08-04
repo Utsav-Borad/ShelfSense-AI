@@ -1,0 +1,12 @@
+export { default as Reveal, SectionHead, EASE } from './Reveal';
+export { default as Verticals } from './Verticals';
+export { default as Problem } from './Problem';
+export { default as Positioning } from './Positioning';
+export { default as Pillars } from './Pillars';
+export { default as CsvFlow } from './CsvFlow';
+export { default as Metrics } from './Metrics';
+export { default as AiEngine } from './AiEngine';
+export { default as Proof } from './Proof';
+export { default as Onboarding } from './Onboarding';
+export { default as Faq } from './Faq';
+export { default as Closing } from './Closing';

@@ -1,0 +1,1 @@
+export default function EmptyState({ icon = 'bi-inbox', title = 'Nothing here yet', description }) { return <div className="state-panel"><i className={`bi ${icon}`}/><h3>{title}</h3>{description && <p>{description}</p>}</div>; }
