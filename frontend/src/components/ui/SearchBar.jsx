@@ -1,0 +1,1 @@
+export default function SearchBar({ value, onChange, placeholder = 'Search' }) { return <div className="search-bar"><i className="bi bi-search"/><input value={value} onChange={onChange} placeholder={placeholder} aria-label={placeholder}/><kbd>⌘ K</kbd></div>; }
