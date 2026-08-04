@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Sparkline } from '../charts';
-import useCountUp from './useCountUp';
+import useCountUp from '../../hooks/useCountUp';
 import { KPIS } from './data';
 
 const EASE = [.16, 1, .3, 1];

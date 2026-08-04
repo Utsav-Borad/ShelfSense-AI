@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import useCountUp from '../dashboard/useCountUp';
+import useCountUp from '../../hooks/useCountUp';
 import { STATUS_META } from './data';
 
 const EASE = [.16, 1, .3, 1];

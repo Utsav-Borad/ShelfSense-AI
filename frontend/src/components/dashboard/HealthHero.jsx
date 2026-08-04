@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import useCountUp from './useCountUp';
+import useCountUp from '../../hooks/useCountUp';
 import { HEALTH } from './data';
 
 const EASE = [.16, 1, .3, 1];

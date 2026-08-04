@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import useCountUp from '../dashboard/useCountUp';
+import useCountUp from '../../hooks/useCountUp';
 
 const EASE = [.16, 1, .3, 1];
 const RADIUS = 76;

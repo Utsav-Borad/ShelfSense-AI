@@ -1,0 +1,195 @@
+/* ShelfSense AI — Business Analytics.
+   Uses the app theme tokens from theme.css. Namespaced `an-`. */
+
+.an {
+  --chart-h: clamp(150px, 20vh, 220px); --an-radius: 20px; display: grid; gap: clamp(18px, 2.4vh, 28px); }
+.an-reveal { display: grid; gap: clamp(16px, 2vh, 24px); }
+.an-eyebrow { display: flex; align-items: center; gap: 7px; margin: 0; color: var(--primary); font-size: 10px; font-weight: 600; letter-spacing: .15em; text-transform: uppercase; }
+
+/* The chart primitives live in the dashboard module, but stylesheets load per
+   page — so their rules are restated here rather than reached for. */
+.an-donut-row { display: flex; align-items: center; gap: 20px; }
+.an-legend { flex: 1; display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.an-legend li { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 12px; }
+.an-legend i { width: 9px; height: 9px; border-radius: 3px; }
+.an-legend i.tone-gold { background: var(--gold); }
+.an-legend i.tone-olive { background: var(--olive); }
+.an-legend i.tone-sage { background: var(--sage); }
+.an-legend i.tone-soft { background: color-mix(in srgb, var(--muted) 55%, transparent); }
+.an-legend b { margin-left: auto; color: var(--text); font-variant-numeric: tabular-nums; }
+
+.an-sweep { position: absolute; inset: 0; pointer-events: none; opacity: 0; background: linear-gradient(105deg, transparent 30%, color-mix(in srgb, var(--primary) 12%, transparent) 48%, transparent 66%); background-size: 260% 100%; background-position: 100% 0; transition: opacity .35s; }
+.an-panel:hover .an-sweep, .an-hero:hover .an-sweep { opacity: 1; animation: an-sweep 1.1s ease-out; }
+@keyframes an-sweep { from { background-position: 130% 0; } to { background-position: -40% 0; } }
+
+/* ------------------------------------------------------------------ hero */
+.an-hero {
+  position: relative; overflow: hidden;
+  display: grid; grid-template-columns: auto 1fr; gap: clamp(22px, 3vw, 48px); align-items: center;
+  padding: clamp(22px, 2.8vw, 38px);
+  border: 1px solid var(--border); border-radius: 24px;
+  background: color-mix(in srgb, var(--card) 80%, transparent);
+  backdrop-filter: blur(16px) saturate(125%);
+  box-shadow: 0 14px 40px -22px color-mix(in srgb, var(--text) 45%, transparent);
+  transition: border-color .3s, box-shadow .3s; will-change: transform;
+}
+.an-hero:hover { border-color: color-mix(in srgb, var(--primary) 34%, var(--border)); box-shadow: 0 28px 60px -28px color-mix(in srgb, var(--text) 50%, transparent); }
+.an-hero-glow { position: absolute; inset: -50% auto auto -20%; width: 55%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--gold) 24%, transparent), transparent 72%); filter: blur(16px); pointer-events: none; }
+.an-hero-score { position: relative; display: grid; justify-items: center; gap: 14px; }
+.an-gauge { position: relative; width: clamp(150px, 13vw, 186px); aspect-ratio: 1; display: grid; place-items: center; }
+.an-gauge svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.an-gauge-track { fill: none; stroke: var(--input); stroke-width: 10; }
+.an-gauge-arc { fill: none; stroke: var(--gold); stroke-width: 10; stroke-linecap: round; filter: drop-shadow(0 0 10px color-mix(in srgb, var(--gold) 45%, transparent)); }
+.an-gauge-value { position: relative; display: grid; justify-items: center; }
+.an-gauge-value strong { font-size: clamp(2rem, 3.2vw, 2.7rem); font-weight: 600; letter-spacing: -.06em; line-height: 1; font-variant-numeric: tabular-nums; }
+.an-gauge-value strong i { font-size: .5em; font-style: normal; }
+.an-gauge-value span { margin-top: 4px; color: var(--muted); font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase; }
+.an-hero-mini { display: flex; gap: 8px; }
+.an-hero-mini span { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted); font-size: 11px; white-space: nowrap; }
+.an-hero-mini b { color: var(--text); font-size: 12.5px; }
+
+.an-hero-brief { position: relative; min-width: 0; }
+.an-hero-brief > header { display: flex; align-items: flex-start; gap: 13px; margin-bottom: 18px; }
+.an-hero-mark { flex: 0 0 auto; width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid color-mix(in srgb, var(--gold) 34%, transparent); border-radius: 13px; background: color-mix(in srgb, var(--gold) 14%, transparent); color: var(--gold); font-size: 18px; }
+.an-hero-brief h2 { margin: 7px 0 0; font-size: clamp(1.15rem, 2vw, 1.5rem); font-weight: 600; letter-spacing: -.035em; }
+.an-brief-lines { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.an-brief-lines button { display: flex; align-items: center; gap: 11px; width: 100%; padding: 9px 12px; border: 1px solid transparent; border-radius: 11px; background: transparent; color: var(--text); font-family: inherit; font-size: 13px; text-align: left; cursor: pointer; transition: background .22s, border-color .22s; }
+.an-brief-lines button:hover { border-color: var(--border); background: var(--input); }
+.an-brief-lines button > i { flex: 0 0 auto; color: var(--success); font-size: 14px; }
+.an-brief-lines button > span { flex: 1; min-width: 0; }
+.an-brief-lines em { display: inline-flex; align-items: center; gap: 5px; opacity: 0; color: var(--primary); font-style: normal; font-size: 11px; font-weight: 600; white-space: nowrap; transition: opacity .22s; }
+.an-brief-lines button:hover em, .an-brief-lines button:focus-visible em { opacity: 1; }
+.an-brief-typing { display: flex; gap: 5px; padding: 12px 0 0 12px; }
+.an-brief-typing span { width: 5px; height: 5px; border-radius: 50%; background: var(--muted); animation: an-typing 1.3s ease-in-out infinite; }
+.an-brief-typing span:nth-child(2) { animation-delay: .18s; }
+.an-brief-typing span:nth-child(3) { animation-delay: .36s; }
+@keyframes an-typing { 0%, 60%, 100% { opacity: .25; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-3px); } }
+
+/* -------------------------------------------------- controls and export */
+.an-controls-wrap { transition: opacity .35s; }
+.an-controls-wrap.is-dimmed { opacity: .6; }
+.an-controls { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.an-range { display: inline-flex; gap: 2px; padding: 4px; border: 1px solid var(--border); border-radius: 999px; background: var(--input); }
+.an-range button { position: relative; padding: 8px 16px; border: 0; border-radius: 999px; background: transparent; color: var(--muted); font-family: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer; transition: color .22s; }
+.an-range button span { position: relative; z-index: 1; }
+.an-range button.is-active { color: var(--text); }
+.an-range-pill { position: absolute; inset: 0; border-radius: 999px; background: var(--card); box-shadow: 0 2px 8px color-mix(in srgb, var(--text) 10%, transparent); }
+
+.an-export-wrap { position: relative; }
+.an-export { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border: 1px solid var(--border); border-radius: 12px; background: transparent; color: var(--text); font-family: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer; transition: background .22s; }
+.an-export:hover { background: var(--input); }
+.an-export-menu { position: absolute; z-index: 30; top: calc(100% + 8px); right: 0; width: 234px; padding: 10px; border: 1px solid var(--border); border-radius: 14px; background: var(--card); box-shadow: var(--shadow); }
+.an-export-menu p { margin: 2px 0 8px; padding: 0 8px; color: var(--muted); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
+.an-export-menu button { display: flex; align-items: center; gap: 9px; width: 100%; padding: 9px 8px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-family: inherit; font-size: 12.5px; text-align: left; cursor: not-allowed; }
+.an-export-menu small { display: flex; align-items: flex-start; gap: 7px; margin-top: 8px; padding: 9px 8px 2px; border-top: 1px solid var(--border); color: var(--muted); font-size: 10.5px; line-height: 1.5; }
+.an-export-menu small i { margin-top: 1px; color: var(--primary); }
+
+/* ------------------------------------------------- panels and grid */
+.an-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(12px, 1.3vw, 18px); }
+.an-panel {
+  position: relative; overflow: visible;
+  padding: clamp(18px, 2vw, 26px);
+  border: 1px solid var(--border); border-radius: var(--an-radius);
+  background: color-mix(in srgb, var(--card) 82%, transparent);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 12px 34px -22px color-mix(in srgb, var(--text) 45%, transparent);
+  transition: border-color .3s, box-shadow .3s, opacity .35s;
+  will-change: transform, opacity;
+}
+.an-panel:nth-child(1), .an-panel:nth-child(8) { grid-column: span 2; }
+
+/* Explain mode: the active chart stays lit while everything else recedes. */
+.an-panel.is-active { z-index: 20; border-color: color-mix(in srgb, var(--gold) 45%, var(--border)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 14%, transparent), 0 34px 70px -30px color-mix(in srgb, var(--text) 55%, transparent); }
+.an-panel.is-active .chart-line { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--gold) 60%, transparent)); }
+.an-panel.is-active .chart-bars i.is-highlight { filter: drop-shadow(0 0 9px color-mix(in srgb, var(--gold) 65%, transparent)); }
+.an-panel.is-active .chart-bars i:not(.is-highlight) { background: color-mix(in srgb, var(--olive) 32%, transparent); }
+.an-panel.is-active .chart-dot { fill: var(--gold); stroke: var(--gold); }
+.an-panel.is-dimmed { pointer-events: auto; }
+
+/* The flash a chart gets when the brief jumps to it. */
+.an-panel.is-flashed { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent); }
+
+.an-panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
+.an-panel-head h3 { margin: 8px 0 0; font-size: 15px; font-weight: 600; letter-spacing: -.025em; }
+.an-panel-meta { display: flex; align-items: center; gap: 12px; }
+.an-headline { display: inline-flex; align-items: baseline; gap: 8px; font-size: 1.05rem; font-weight: 600; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.an-headline em { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 999px; font-style: normal; font-size: 10px; font-weight: 600; }
+.an-headline em.is-good { background: color-mix(in srgb, var(--success) 14%, transparent); color: var(--success); }
+.an-headline em.is-bad { background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); }
+.an-ask { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 13px; border: 1px solid color-mix(in srgb, var(--gold) 40%, var(--border)); border-radius: 10px; background: color-mix(in srgb, var(--gold) 10%, transparent); color: var(--gold); font-family: inherit; font-size: 11.5px; font-weight: 600; white-space: nowrap; cursor: pointer; transition: background .22s; }
+.an-ask:hover { background: color-mix(in srgb, var(--gold) 18%, transparent); }
+.an-ask:focus-visible, .an-range button:focus-visible, .an-export:focus-visible, .an-brief-lines button:focus-visible, .an-insight-more:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* ---------------------------------------------------------- insight card */
+.an-insight { position: absolute; z-index: 25; right: clamp(14px, 2vw, 22px); bottom: clamp(14px, 2vw, 22px); width: min(330px, calc(100% - 32px)); padding: 16px; border: 1px solid color-mix(in srgb, var(--gold) 34%, var(--border)); border-radius: 16px; background: color-mix(in srgb, var(--card) 96%, transparent); backdrop-filter: blur(18px); box-shadow: 0 26px 56px -24px color-mix(in srgb, var(--text) 60%, transparent); pointer-events: none; }
+.an-insight header { display: flex; align-items: center; gap: 9px; margin-bottom: 11px; }
+.an-insight-mark { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 8px; background: color-mix(in srgb, var(--gold) 16%, transparent); color: var(--gold); font-size: 12px; }
+.an-insight header strong { flex: 1; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.an-insight-summary { margin: 0; font-size: 12.5px; line-height: 1.6; font-weight: 500; }
+.an-insight dl { display: grid; gap: 10px; margin: 13px 0 0; }
+.an-insight dt { color: var(--gold); font-size: 9px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
+.an-insight dd { margin: 4px 0 0; color: var(--muted); font-size: 11.5px; line-height: 1.55; }
+.an-insight-more { display: inline-flex; align-items: center; gap: 6px; margin-top: 13px; padding: 0; border: 0; background: transparent; color: var(--primary); font-family: inherit; font-size: 11px; font-weight: 600; cursor: pointer; pointer-events: auto; }
+.an-insight-more:hover { text-decoration: underline; }
+
+/* ------------------------------------------------------------ confidence */
+.an-ring { position: relative; flex: 0 0 auto; display: inline-grid; place-items: center; width: 44px; height: 44px; }
+.an-ring.is-sm { width: 34px; height: 34px; }
+.an-ring.is-lg { width: 84px; height: 84px; }
+.an-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.an-ring-track { fill: none; stroke: var(--input); stroke-width: 4; }
+.an-ring-arc { fill: none; stroke: var(--olive); stroke-width: 4; stroke-linecap: round; }
+.an-ring.tone-success .an-ring-arc { stroke: var(--success); }
+.an-ring.tone-warning .an-ring-arc { stroke: var(--warning); }
+.an-ring b { position: relative; font-size: 11.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.an-ring b i { font-size: .7em; font-style: normal; }
+.an-ring.is-sm b { font-size: 10px; }
+.an-ring.is-lg b { font-size: 19px; letter-spacing: -.03em; }
+.an-ring.is-lg em { position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); color: var(--muted); font-style: normal; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+
+/* ------------------------------------------------------------- skeletons */
+.an-skeletons { display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(12px, 1.3vw, 18px); }
+.an-sk { display: block; height: 300px; border-radius: var(--an-radius); background: linear-gradient(90deg, var(--input) 25%, color-mix(in srgb, var(--text) 6%, var(--input)) 37%, var(--input) 63%); background-size: 400% 100%; animation: an-shimmer 1.4s ease-in-out infinite; }
+.an-sk:first-child { grid-column: span 2; }
+@keyframes an-shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+
+/* ---------------------------------------------------------------- drawer */
+.an-drawer-backdrop { position: fixed; inset: 0; z-index: 80; background: color-mix(in srgb, var(--overlay) 85%, transparent); backdrop-filter: blur(6px); }
+.an-drawer { position: fixed; z-index: 81; top: 0; right: 0; bottom: 0; width: min(480px, 100%); display: flex; flex-direction: column; border-left: 1px solid var(--border); background: var(--card); box-shadow: -30px 0 70px -30px rgba(0, 0, 0, .5); will-change: transform; }
+.an-drawer-head { display: flex; align-items: flex-start; gap: 13px; padding: 22px clamp(18px, 3vw, 26px) 18px; border-bottom: 1px solid var(--border); }
+.an-drawer-mark { flex: 0 0 auto; width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid color-mix(in srgb, var(--gold) 34%, transparent); border-radius: 13px; background: color-mix(in srgb, var(--gold) 14%, transparent); color: var(--gold); font-size: 17px; }
+.an-drawer-head h3 { margin: 7px 0 0; font-size: 16px; font-weight: 600; letter-spacing: -.03em; }
+.an-drawer-close { flex: 0 0 auto; margin-left: auto; width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 10px; background: transparent; color: var(--muted); font-size: 12px; cursor: pointer; }
+.an-drawer-close:hover { background: var(--input); color: var(--text); }
+.an-drawer-body { flex: 1; overflow-y: auto; padding: 22px clamp(18px, 3vw, 26px) 32px; display: grid; gap: 22px; align-content: start; }
+.an-drawer-confidence { display: flex; align-items: center; gap: 20px; padding: 18px 16px 26px; border: 1px solid var(--border); border-radius: 15px; background: var(--surface); }
+.an-drawer-confidence p { margin: 0; color: var(--text); font-size: 12.5px; line-height: 1.65; }
+.an-qa h4 { display: flex; align-items: center; gap: 9px; margin: 0 0 8px; font-size: 12.5px; font-weight: 600; letter-spacing: -.01em; }
+.an-qa h4 i { color: var(--gold); font-size: 13px; }
+.an-qa p { margin: 0; padding-left: 22px; color: var(--muted); font-size: 12.5px; line-height: 1.75; }
+.an-drawer-note { display: flex; align-items: flex-start; gap: 9px; margin: 0; padding: 12px 14px; border: 1px dashed var(--border); border-radius: 12px; color: var(--muted); font-size: 11.5px; line-height: 1.6; }
+.an-drawer-note i { margin-top: 1px; color: var(--sage); }
+
+/* ---------------------------------------------------------- responsive */
+@media (max-width: 1100px) {
+  .an-hero { grid-template-columns: 1fr; justify-items: center; }
+  .an-hero-brief { width: 100%; }
+  .an-grid, .an-skeletons { grid-template-columns: 1fr; }
+  .an-panel:nth-child(1), .an-panel:nth-child(8), .an-sk:first-child { grid-column: span 1; }
+}
+
+@media (max-width: 720px) {
+  .an-donut-row { flex-direction: column; }
+  .an-panel-head { flex-direction: column; }
+  .an-controls { flex-direction: column; align-items: stretch; }
+  .an-range { overflow-x: auto; }
+  /* The floating card would cover the chart on a small screen, so it sits
+     underneath it instead. */
+  .an-insight { position: static; width: 100%; margin-top: 16px; }
+  .an-drawer { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .an-sk, .an-brief-typing span { animation-duration: 2.6s; }
+  .an-panel:hover .an-sweep, .an-hero:hover .an-sweep { animation: none; }
+}

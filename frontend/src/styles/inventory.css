@@ -3,6 +3,7 @@
    toggle. Namespaced `inv-`. */
 
 .inv { --inv-radius: 18px; display: grid; gap: clamp(18px, 2.4vh, 28px); }
+.inv-filter select option { background-color: var(--card); color: var(--text); }
 .inv-reveal { display: grid; gap: clamp(18px, 2.4vh, 28px); }
 .inv-eyebrow { display: flex; align-items: center; gap: 7px; margin: 0; color: var(--primary); font-size: 10px; font-weight: 600; letter-spacing: .15em; text-transform: uppercase; }
 .inv-muted { color: var(--muted); }

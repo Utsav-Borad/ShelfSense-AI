@@ -1,0 +1,250 @@
+/* ShelfSense AI — Product Intelligence.
+   Uses the app theme tokens from theme.css. Namespaced `pi-`.
+   Deliberately shares the Inventory Intelligence rhythm and weights. */
+
+/* Native <option> colours as a fallback; colour-scheme is set in theme.css. */
+.pi { --pi-radius: 18px; display: grid; gap: clamp(18px, 2.4vh, 28px); }
+.pi-sort select option { background-color: var(--card); color: var(--text); }
+.pi-reveal { display: grid; gap: clamp(18px, 2.4vh, 28px); }
+.pi-eyebrow { display: flex; align-items: center; gap: 7px; margin: 0; color: var(--primary); font-size: 10px; font-weight: 600; letter-spacing: .15em; text-transform: uppercase; }
+
+/* The Sparkline component is shared with the dashboard, but stylesheets load
+   per page — so its rules are restated here rather than reached for. */
+
+.pi-sweep { position: absolute; inset: 0; pointer-events: none; opacity: 0; background: linear-gradient(105deg, transparent 30%, color-mix(in srgb, var(--primary) 12%, transparent) 48%, transparent 66%); background-size: 260% 100%; background-position: 100% 0; transition: opacity .35s; }
+.pi-card:hover .pi-sweep, .pi-hero:hover .pi-sweep { opacity: 1; animation: pi-sweep 1.1s ease-out; }
+@keyframes pi-sweep { from { background-position: 130% 0; } to { background-position: -40% 0; } }
+
+.pi-btn { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px; border: 1px solid var(--border); border-radius: 11px; background: transparent; color: var(--text); font-family: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: background .22s; }
+.pi-btn:hover { background: var(--input); }
+.pi-btn:focus-visible, .pi-chips button:focus-visible, .pi-view button:focus-visible, .pi-brief-lines button:focus-visible, .pi-card-title button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* ------------------------------------------------------------------ hero */
+.pi-hero {
+  position: relative; overflow: hidden;
+  display: grid; grid-template-columns: auto 1fr; gap: clamp(22px, 3vw, 48px); align-items: center;
+  padding: clamp(22px, 2.8vw, 38px);
+  border: 1px solid var(--border); border-radius: 24px;
+  background: color-mix(in srgb, var(--card) 80%, transparent);
+  backdrop-filter: blur(16px) saturate(125%);
+  box-shadow: 0 14px 40px -22px color-mix(in srgb, var(--text) 45%, transparent);
+  transition: border-color .3s, box-shadow .3s; will-change: transform;
+}
+.pi-hero:hover { border-color: color-mix(in srgb, var(--primary) 34%, var(--border)); box-shadow: 0 28px 60px -28px color-mix(in srgb, var(--text) 50%, transparent); }
+.pi-hero-glow { position: absolute; inset: -50% auto auto -20%; width: 55%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--gold) 24%, transparent), transparent 72%); filter: blur(16px); pointer-events: none; }
+
+.pi-hero-score { position: relative; display: grid; justify-items: center; gap: 14px; }
+.pi-gauge { position: relative; width: clamp(150px, 13vw, 186px); aspect-ratio: 1; display: grid; place-items: center; }
+.pi-gauge svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.pi-gauge-track { fill: none; stroke: var(--input); stroke-width: 10; }
+.pi-gauge-arc { fill: none; stroke: var(--gold); stroke-width: 10; stroke-linecap: round; filter: drop-shadow(0 0 10px color-mix(in srgb, var(--gold) 45%, transparent)); }
+.pi-gauge-value { position: relative; display: grid; justify-items: center; }
+.pi-gauge-value strong { font-size: clamp(2.1rem, 3.3vw, 2.8rem); font-weight: 600; letter-spacing: -.06em; line-height: 1; font-variant-numeric: tabular-nums; }
+.pi-gauge-value span { margin-top: 4px; color: var(--muted); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+.pi-hero-mini { display: flex; gap: 8px; }
+.pi-hero-mini span { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted); font-size: 11px; white-space: nowrap; }
+.pi-hero-mini b { color: var(--text); font-size: 12.5px; }
+
+.pi-hero-brief { position: relative; min-width: 0; }
+.pi-hero-brief > header { display: flex; align-items: flex-start; gap: 13px; margin-bottom: 18px; }
+.pi-hero-mark { flex: 0 0 auto; width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid color-mix(in srgb, var(--gold) 34%, transparent); border-radius: 13px; background: color-mix(in srgb, var(--gold) 14%, transparent); color: var(--gold); font-size: 18px; }
+.pi-hero-brief h2 { margin: 7px 0 0; font-size: clamp(1.15rem, 2vw, 1.5rem); font-weight: 600; letter-spacing: -.035em; }
+
+.pi-brief-lines { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.pi-brief-lines button { display: flex; align-items: center; gap: 11px; width: 100%; padding: 9px 12px; border: 1px solid transparent; border-radius: 11px; background: transparent; color: var(--text); font-family: inherit; font-size: 13px; text-align: left; cursor: pointer; transition: background .22s, border-color .22s; }
+.pi-brief-lines button:hover { border-color: var(--border); background: var(--input); }
+.pi-brief-lines button > i { flex: 0 0 auto; color: var(--success); font-size: 14px; }
+.pi-brief-lines button > span { flex: 1; min-width: 0; }
+.pi-brief-lines em { display: inline-flex; align-items: center; gap: 5px; opacity: 0; color: var(--primary); font-style: normal; font-size: 11px; font-weight: 600; white-space: nowrap; transition: opacity .22s; }
+.pi-brief-lines button:hover em, .pi-brief-lines button:focus-visible em { opacity: 1; }
+.pi-brief-typing { display: flex; gap: 5px; padding: 12px 0 0 12px; }
+.pi-brief-typing span { width: 5px; height: 5px; border-radius: 50%; background: var(--muted); animation: pi-typing 1.3s ease-in-out infinite; }
+.pi-brief-typing span:nth-child(2) { animation-delay: .18s; }
+.pi-brief-typing span:nth-child(3) { animation-delay: .36s; }
+@keyframes pi-typing { 0%, 60%, 100% { opacity: .25; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-3px); } }
+
+/* --------------------------------------------------------------- toolbar */
+.pi-panel { border: 1px solid var(--border); border-radius: 22px; background: color-mix(in srgb, var(--card) 82%, transparent); backdrop-filter: blur(14px); box-shadow: 0 12px 34px -22px color-mix(in srgb, var(--text) 45%, transparent); overflow: hidden; }
+.pi-toolbar { display: grid; gap: 14px; padding: 18px clamp(16px, 2vw, 24px); border-bottom: 1px solid var(--border); }
+.pi-toolbar-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.pi-search { position: relative; flex: 1; min-width: 200px; display: flex; align-items: center; gap: 9px; height: 42px; padding: 0 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--input); transition: border-color .22s, background .22s; }
+.pi-search:focus-within { border-color: color-mix(in srgb, var(--primary) 45%, var(--border)); background: var(--card); }
+.pi-search > i { color: var(--muted); font-size: 13px; }
+.pi-search input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--text); font-family: inherit; font-size: 13px; }
+.pi-search input:focus { outline: none; }
+.pi-search button { width: 26px; height: 26px; display: grid; place-items: center; border: 0; border-radius: 7px; background: transparent; color: var(--muted); font-size: 10px; cursor: pointer; }
+.pi-search button:hover { background: var(--card); color: var(--text); }
+
+.pi-sort { position: relative; display: flex; align-items: center; }
+.pi-sort select { appearance: none; height: 42px; padding: 0 34px 0 14px; border: 1px solid var(--border); border-radius: 12px; background: transparent; color: var(--text); font-family: inherit; font-size: 12.5px; cursor: pointer; }
+.pi-sort i { position: absolute; right: 13px; color: var(--muted); font-size: 11px; pointer-events: none; }
+
+.pi-view { display: inline-flex; gap: 2px; padding: 4px; border: 1px solid var(--border); border-radius: 12px; background: var(--input); }
+.pi-view button { position: relative; width: 36px; height: 34px; display: grid; place-items: center; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; transition: color .22s; }
+.pi-view button.is-active { color: var(--primary); }
+.pi-view button i { position: relative; z-index: 1; }
+.pi-view-pill { position: absolute; inset: 0; border-radius: 9px; background: var(--card); box-shadow: 0 2px 8px color-mix(in srgb, var(--text) 10%, transparent); }
+
+.pi-chip-rows { display: grid; gap: 9px; }
+.pi-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.pi-chips button { padding: 7px 13px; border: 1px solid var(--border); border-radius: 999px; background: transparent; color: var(--muted); font-family: inherit; font-size: 11.5px; font-weight: 500; cursor: pointer; transition: background .2s, border-color .2s, color .2s; }
+.pi-chips button:hover { color: var(--text); background: var(--input); }
+.pi-chips button.is-active { border-color: color-mix(in srgb, var(--primary) 50%, var(--border)); background: color-mix(in srgb, var(--primary) 12%, transparent); color: var(--primary); }
+.pi-chips.is-status button { display: inline-flex; align-items: center; gap: 6px; }
+.pi-chips.is-status button.tone-success.is-active { border-color: color-mix(in srgb, var(--success) 50%, transparent); background: color-mix(in srgb, var(--success) 12%, transparent); color: var(--success); }
+.pi-chips.is-status button.tone-olive.is-active { border-color: color-mix(in srgb, var(--olive) 50%, transparent); background: color-mix(in srgb, var(--olive) 12%, transparent); color: var(--olive); }
+.pi-chips.is-status button.tone-warning.is-active { border-color: color-mix(in srgb, var(--warning) 50%, transparent); background: color-mix(in srgb, var(--warning) 12%, transparent); color: var(--warning); }
+.pi-chips.is-status button.tone-danger.is-active { border-color: color-mix(in srgb, var(--danger) 50%, transparent); background: color-mix(in srgb, var(--danger) 12%, transparent); color: var(--danger); }
+
+.pi-toolbar-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 11.5px; }
+.pi-reset { display: inline-flex; align-items: center; gap: 6px; border: 0; background: transparent; color: var(--primary); font-family: inherit; font-size: 11.5px; font-weight: 600; cursor: pointer; }
+.pi-reset:hover { text-decoration: underline; }
+
+/* ------------------------------------------------------------ score ring */
+.pi-ring { position: relative; flex: 0 0 auto; display: inline-grid; place-items: center; width: 44px; height: 44px; }
+.pi-ring.is-sm { width: 36px; height: 36px; }
+.pi-ring.is-lg { width: 76px; height: 76px; }
+.pi-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.pi-ring-track { fill: none; stroke: var(--input); stroke-width: 4; }
+.pi-ring-arc { fill: none; stroke: var(--olive); stroke-width: 4; stroke-linecap: round; }
+.pi-ring.tone-success .pi-ring-arc { stroke: var(--success); }
+.pi-ring.tone-warning .pi-ring-arc { stroke: var(--warning); }
+.pi-ring.tone-danger .pi-ring-arc { stroke: var(--danger); }
+.pi-ring b { position: relative; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.pi-ring.is-sm b { font-size: 10.5px; }
+.pi-ring.is-lg b { font-size: 20px; letter-spacing: -.04em; }
+
+/* ------------------------------------------------------------------ grid */
+.pi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(10px, 1.1vw, 14px); padding: clamp(16px, 2vw, 22px); }
+.pi-card { position: relative; overflow: hidden; display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--pi-radius); background: var(--surface); transition: border-color .3s, box-shadow .3s; will-change: transform; }
+.pi-card:hover { border-color: color-mix(in srgb, var(--primary) 34%, var(--border)); box-shadow: 0 22px 46px -26px color-mix(in srgb, var(--text) 55%, transparent); }
+.pi-card.is-highlight { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent); }
+
+/* Placeholder imagery — a tinted tile, not a photograph. */
+.pi-thumb { position: relative; display: grid; place-items: center; height: 118px; border: 0; border-bottom: 1px solid var(--border); background: linear-gradient(150deg, color-mix(in srgb, var(--primary) 22%, transparent), color-mix(in srgb, var(--primary) 6%, transparent)); color: var(--primary); cursor: pointer; overflow: hidden; }
+.pi-thumb.tone-sage { background: linear-gradient(150deg, color-mix(in srgb, var(--sage) 26%, transparent), color-mix(in srgb, var(--sage) 7%, transparent)); color: var(--sage); }
+.pi-thumb.tone-gold { background: linear-gradient(150deg, color-mix(in srgb, var(--gold) 26%, transparent), color-mix(in srgb, var(--gold) 7%, transparent)); color: var(--gold); }
+.pi-thumb.tone-olive { background: linear-gradient(150deg, color-mix(in srgb, var(--olive) 26%, transparent), color-mix(in srgb, var(--olive) 7%, transparent)); color: var(--olive); }
+.pi-thumb.tone-info { background: linear-gradient(150deg, color-mix(in srgb, var(--info) 26%, transparent), color-mix(in srgb, var(--info) 7%, transparent)); color: var(--info); }
+.pi-thumb.tone-warning { background: linear-gradient(150deg, color-mix(in srgb, var(--warning) 26%, transparent), color-mix(in srgb, var(--warning) 7%, transparent)); color: var(--warning); }
+.pi-thumb > i { font-size: 34px; opacity: .9; transition: transform .35s; }
+.pi-card:hover .pi-thumb > i { transform: scale(1.08) rotate(-5deg); }
+.pi-thumb-initials { position: absolute; right: 12px; bottom: 10px; color: color-mix(in srgb, var(--text) 35%, transparent); font-size: 22px; font-weight: 700; letter-spacing: -.04em; }
+.pi-status { position: absolute; top: 10px; left: 10px; display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border: 1px solid; border-radius: 999px; backdrop-filter: blur(6px); font-size: 9.5px; font-weight: 600; white-space: nowrap; }
+.pi-status.is-inline { position: static; backdrop-filter: none; }
+.pi-status.tone-success { border-color: color-mix(in srgb, var(--success) 40%, transparent); background: color-mix(in srgb, var(--success) 14%, transparent); color: var(--success); }
+.pi-status.tone-olive { border-color: color-mix(in srgb, var(--olive) 40%, transparent); background: color-mix(in srgb, var(--olive) 14%, transparent); color: var(--olive); }
+.pi-status.tone-warning { border-color: color-mix(in srgb, var(--warning) 40%, transparent); background: color-mix(in srgb, var(--warning) 14%, transparent); color: var(--warning); }
+.pi-status.tone-danger { border-color: color-mix(in srgb, var(--danger) 40%, transparent); background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); }
+
+.pi-card-body { display: flex; flex-direction: column; flex: 1; padding: 14px; }
+.pi-card-top { display: flex; align-items: flex-start; gap: 10px; }
+.pi-card-title { flex: 1; min-width: 0; }
+.pi-card-title button { padding: 0; border: 0; background: transparent; color: var(--text); font-family: inherit; font-size: 13px; font-weight: 600; letter-spacing: -.015em; text-align: left; cursor: pointer; }
+.pi-card-title button:hover { color: var(--primary); }
+.pi-card-title small { display: block; margin-top: 3px; color: var(--muted); font-size: 10.5px; }
+.pi-card-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 14px 0 0; }
+.pi-card-stats dt { color: var(--muted); font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; }
+.pi-card-stats dd { margin: 4px 0 0; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.pi-card-stats dd small { display: block; margin-top: 1px; color: var(--muted); font-size: 9.5px; font-weight: 400; }
+.pi-card-stats dd.is-low { color: var(--warning); }
+.pi-card-stats dd.is-up { color: var(--success); }
+.pi-card-stats dd.is-down { color: var(--danger); }
+.pi-card-spark { margin-top: auto; padding-top: 12px; }
+
+/* ----------------------------------------------------------------- table */
+.pi-table-wrap { overflow-x: auto; }
+.pi-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.pi-table thead th { position: sticky; top: 0; z-index: 4; padding: 13px 14px; background: color-mix(in srgb, var(--surface) 96%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); color: var(--muted); font-size: 10.5px; font-weight: 600; letter-spacing: .1em; text-align: left; text-transform: uppercase; white-space: nowrap; }
+.pi-table th.is-numeric, .pi-table td.is-numeric { text-align: right; }
+.pi-table tbody td { padding: 11px 14px; border-bottom: 1px solid color-mix(in srgb, var(--border) 65%, transparent); font-size: 12.5px; vertical-align: middle; }
+.pi-table tbody tr { cursor: pointer; transition: background .2s; }
+.pi-table tbody tr:hover { background: color-mix(in srgb, var(--primary) 6%, transparent); }
+.pi-table tbody tr.is-highlight { background: color-mix(in srgb, var(--primary) 10%, transparent); box-shadow: inset 3px 0 0 var(--primary); }
+.pi-table td.is-numeric { font-variant-numeric: tabular-nums; }
+.pi-table-product { display: flex; align-items: center; gap: 11px; }
+.pi-table-thumb { flex: 0 0 auto; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; background: color-mix(in srgb, var(--primary) 14%, transparent); color: var(--primary); font-size: 14px; }
+.pi-table-thumb.tone-sage { background: color-mix(in srgb, var(--sage) 18%, transparent); color: var(--sage); }
+.pi-table-thumb.tone-gold { background: color-mix(in srgb, var(--gold) 18%, transparent); color: var(--gold); }
+.pi-table-thumb.tone-olive { background: color-mix(in srgb, var(--olive) 18%, transparent); color: var(--olive); }
+.pi-table-thumb.tone-info { background: color-mix(in srgb, var(--info) 18%, transparent); color: var(--info); }
+.pi-table-thumb.tone-warning { background: color-mix(in srgb, var(--warning) 18%, transparent); color: var(--warning); }
+.pi-table-product strong { display: block; font-size: 12.5px; font-weight: 600; }
+.pi-table-product small { display: block; margin-top: 2px; color: var(--muted); font-size: 10.5px; }
+.pi-table-demand { display: inline-flex; align-items: center; gap: 10px; }
+.pi-table-demand em { display: inline-flex; align-items: center; font-style: normal; font-size: 12px; font-weight: 600; }
+.pi-table-demand em.is-up { color: var(--success); }
+.pi-table-demand em.is-down { color: var(--danger); }
+.pi-table-spark { display: block; width: 66px; }
+.pi-table-spark .sparkline { height: 20px; }
+.pi-low { color: var(--warning); font-weight: 600; }
+.pi-table .pi-ring { margin-left: auto; }
+
+/* ------------------------------------------------- states and skeletons */
+.pi-state { display: grid; justify-items: center; gap: 14px; padding: 46px 20px; }
+.pi-skeleton-list { display: grid; gap: 8px; padding: clamp(16px, 2vw, 22px); }
+.pi-sk { display: block; border-radius: var(--pi-radius); background: linear-gradient(90deg, var(--input) 25%, color-mix(in srgb, var(--text) 6%, var(--input)) 37%, var(--input) 63%); background-size: 400% 100%; animation: pi-shimmer 1.4s ease-in-out infinite; }
+@keyframes pi-shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+.pi-sk-card { height: 268px; }
+.pi-sk-row { height: 58px; border-radius: 12px; }
+
+/* ---------------------------------------------------------------- drawer */
+.pi-drawer-backdrop { position: fixed; inset: 0; z-index: 80; background: color-mix(in srgb, var(--overlay) 85%, transparent); backdrop-filter: blur(6px); }
+.pi-drawer { position: fixed; z-index: 81; top: 0; right: 0; bottom: 0; width: min(440px, 100%); display: flex; flex-direction: column; border-left: 1px solid var(--border); background: var(--card); box-shadow: -30px 0 70px -30px rgba(0, 0, 0, .5); will-change: transform; }
+.pi-drawer-head { display: flex; align-items: flex-start; gap: 14px; padding: 22px clamp(18px, 3vw, 26px) 18px; border-bottom: 1px solid var(--border); }
+.pi-drawer-thumb { position: relative; flex: 0 0 auto; width: 56px; height: 56px; display: grid; place-items: center; border-radius: 15px; background: color-mix(in srgb, var(--primary) 16%, transparent); color: var(--primary); font-size: 22px; }
+.pi-drawer-thumb.tone-sage { background: color-mix(in srgb, var(--sage) 20%, transparent); color: var(--sage); }
+.pi-drawer-thumb.tone-gold { background: color-mix(in srgb, var(--gold) 20%, transparent); color: var(--gold); }
+.pi-drawer-thumb.tone-olive { background: color-mix(in srgb, var(--olive) 20%, transparent); color: var(--olive); }
+.pi-drawer-thumb.tone-info { background: color-mix(in srgb, var(--info) 20%, transparent); color: var(--info); }
+.pi-drawer-thumb.tone-warning { background: color-mix(in srgb, var(--warning) 20%, transparent); color: var(--warning); }
+.pi-drawer-thumb span { position: absolute; right: 5px; bottom: 3px; font-size: 10px; font-weight: 700; opacity: .55; }
+.pi-drawer-head h3 { margin: 10px 0 0; font-size: 16px; font-weight: 600; letter-spacing: -.03em; }
+.pi-drawer-head p { margin: 4px 0 0; color: var(--muted); font-size: 11.5px; }
+.pi-drawer-close { flex: 0 0 auto; margin-left: auto; width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 10px; background: transparent; color: var(--muted); font-size: 12px; cursor: pointer; }
+.pi-drawer-close:hover { background: var(--input); color: var(--text); }
+
+.pi-drawer-body { flex: 1; overflow-y: auto; padding: 20px clamp(18px, 3vw, 26px) 30px; display: grid; gap: 22px; align-content: start; }
+.pi-drawer-score { display: flex; align-items: center; gap: 16px; padding: 16px; border: 1px solid var(--border); border-radius: 15px; background: var(--surface); }
+.pi-drawer-score strong { display: block; font-size: 13px; font-weight: 600; }
+.pi-drawer-score p { margin: 5px 0 0; color: var(--muted); font-size: 11.5px; line-height: 1.6; }
+.pi-drawer-block h4 { margin: 0 0 10px; color: var(--muted); font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
+.pi-drawer-chart { padding: 12px 14px; border: 1px solid var(--border); border-radius: 13px; background: var(--surface); }
+.pi-drawer-chart .sparkline { height: 54px; }
+.pi-drawer-trend { display: flex; align-items: center; gap: 7px; margin: 10px 0 0; font-size: 12px; font-weight: 500; }
+.pi-drawer-trend.is-up { color: var(--success); }
+.pi-drawer-trend.is-down { color: var(--danger); }
+.pi-drawer-rows { margin: 0; display: grid; gap: 1px; border: 1px solid var(--border); border-radius: 13px; background: var(--border); overflow: hidden; }
+.pi-drawer-rows > div { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 11px 14px; background: var(--card); }
+.pi-drawer-rows dt { color: var(--muted); font-size: 12px; }
+.pi-drawer-rows dd { margin: 0; font-size: 12.5px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.pi-drawer-note { display: flex; align-items: flex-start; gap: 9px; margin: 0; padding: 12px 14px; border: 1px dashed var(--border); border-radius: 12px; color: var(--muted); font-size: 11.5px; line-height: 1.6; }
+.pi-drawer-note i { margin-top: 1px; color: var(--sage); }
+
+/* ---------------------------------------------------------- responsive */
+@media (max-width: 1280px) { .pi-grid { grid-template-columns: repeat(3, 1fr); } }
+
+@media (max-width: 1024px) {
+  .pi-hero { grid-template-columns: 1fr; justify-items: center; }
+  .pi-hero-brief { width: 100%; }
+}
+
+@media (max-width: 860px) {
+  .pi-grid { grid-template-columns: repeat(2, 1fr); }
+  .pi-toolbar-row { flex-direction: column; align-items: stretch; }
+  .pi-sort select { width: 100%; }
+  .pi-view { align-self: flex-start; }
+  .pi-table-spark { display: none; }
+}
+
+@media (max-width: 560px) {
+  .pi-grid { grid-template-columns: 1fr; }
+  .pi-drawer { width: 100%; }
+  .pi-hero-mini { flex-wrap: wrap; justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pi-sk, .pi-brief-typing span { animation-duration: 2.6s; }
+  .pi-card:hover .pi-sweep, .pi-hero:hover .pi-sweep { animation: none; }
+}

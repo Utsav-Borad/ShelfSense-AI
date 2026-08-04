@@ -70,13 +70,7 @@
 .auth-input-shell.is-select .auth-input { appearance: none; padding-right: 38px; cursor: pointer; }
 .auth-select-caret { position: absolute; right: 14px; color: var(--muted); font-size: 12px; pointer-events: none; }
 
-/* The open <option> list is drawn by the OS, not by our CSS box — it does not
-   inherit the select's colours, so light text landed on a white popup. Setting
-   colour-scheme makes the browser draw the native popup (and scrollbars) in the
-   right mode; the explicit option colours are the fallback for browsers that
-   ignore it. */
-.auth-shell { color-scheme: light; }
-[data-theme='dark'] .auth-shell { color-scheme: dark; }
+/* Native <option> colours as a fallback; colour-scheme is set in theme.css. */
 .auth-input-shell.is-select select option {
   background-color: var(--card);
   color: var(--text);

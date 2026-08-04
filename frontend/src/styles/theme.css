@@ -1,4 +1,84 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+/* ShelfSense AI — theme tokens.
+   Colour scales flip with [data-theme]; the design scale below does not. */
+
 :root, [data-theme='light'] { --primary:#8B5E3C; --primary-hover:#6B4A36; --secondary:#E7D7C1; --background:#F7F4EF; --surface:#FAF8F4; --card:#FFFDF9; --text:#2E2A27; --muted:#756B61; --success:#5F8B55; --warning:#D69C2F; --danger:#C95C54; --info:#6B7EA6; --olive:#5E7A4D; --gold:#C8A25A; --sage:#A8C3A6; --border:#E5DCCF; --shadow:0 18px 50px rgba(92,64,51,.09); --overlay:rgba(46,42,39,.36); --input:#F7F4EF; }
 [data-theme='dark'] { --primary:#D9B98B; --primary-hover:#E7D7C1; --secondary:#3B3029; --background:#201B18; --surface:#28211D; --card:#312923; --text:#F7F1E9; --muted:#C4B4A4; --success:#93B087; --warning:#E0B24B; --danger:#DE8078; --info:#9AAAD0; --olive:#8FA77B; --gold:#D8B66D; --sage:#A8C3A6; --border:rgba(231,215,193,.14); --shadow:0 18px 50px rgba(0,0,0,.24); --overlay:rgba(20,16,13,.7); --input:#241E1A; }
+
+/* Native controls — selects, scrollbars, date pickers, autofill — are painted
+   by the OS and do not inherit our colours. Declaring colour-scheme once here
+   makes every one of them follow the theme, app-wide. */
+:root, [data-theme='light'] { color-scheme: light; }
+[data-theme='dark'] { color-scheme: dark; }
+
+/* The design scale. Modules reference these rather than inventing values, so
+   radius, shadow, motion and rhythm stay identical across every screen. */
+:root {
+  /* radius */
+  --r-xs: 8px;
+  --r-sm: 11px;
+  --r-md: 14px;
+  --r-lg: 18px;
+  --r-xl: 22px;
+  --r-2xl: 26px;
+  --r-pill: 999px;
+
+  /* elevation — one family, three depths */
+  --shadow-sm: 0 8px 22px -16px color-mix(in srgb, var(--text) 45%, transparent);
+  --shadow-md: 0 12px 34px -22px color-mix(in srgb, var(--text) 45%, transparent);
+  --shadow-lg: 0 24px 54px -26px color-mix(in srgb, var(--text) 52%, transparent);
+  --shadow-drawer: -30px 0 70px -30px rgba(0, 0, 0, .5);
+
+  /* rhythm */
+  --gap-xs: 8px;
+  --gap-sm: 12px;
+  --gap-md: clamp(12px, 1.4vw, 18px);
+  --gap-lg: clamp(18px, 2.4vh, 28px);
+  --pad-card: clamp(18px, 2vw, 26px);
+  --pad-hero: clamp(22px, 2.8vw, 38px);
+
+  /* type scale */
+  --fs-eyebrow: 10px;
+  --fs-micro: 10.5px;
+  --fs-small: 11.5px;
+  --fs-body: 12.5px;
+  --fs-base: 13px;
+  --fs-lead: 15px;
+  --fs-h3: 15px;
+  --fs-h2: clamp(1.05rem, 1.7vw, 1.35rem);
+  --fs-h1: clamp(1.35rem, 2.4vw, 1.85rem);
+
+  /* icons */
+  --icon-sm: 13px;
+  --icon-md: 16px;
+  --icon-lg: 19px;
+  --icon-tile-sm: 32px;
+  --icon-tile-md: 38px;
+  --icon-tile-lg: 44px;
+
+  /* motion — one easing curve and four durations across the whole product */
+  --ease: cubic-bezier(.16, 1, .3, 1);
+  --dur-fast: .22s;
+  --dur-base: .32s;
+  --dur-slow: .45s;
+  --dur-slower: .7s;
+}
+
+/* One focus ring everywhere, drawn only for keyboard users. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--r-xs);
+}
+
+/* Framer Motion respects this through <MotionConfig reducedMotion="user"> in
+   App.jsx; these rules cover the CSS-driven animations it cannot see. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

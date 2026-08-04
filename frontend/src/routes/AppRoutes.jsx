@@ -15,12 +15,20 @@ import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from '../pages/auth/ResetPasswordPage';
 import BusinessSetupPage from '../pages/auth/BusinessSetupPage';
 
-const lazyPage = (path) => lazy(() => import(path));
- const Products = lazyPage('../pages/inventory/ProductsPage'); const Suppliers = lazyPage('../pages/inventory/SuppliersPage'); const Analytics = lazyPage('../pages/analytics/AnalyticsPage'); const AiInsights = lazyPage('../pages/ai/AiInsightsPage'); const Reports = lazyPage('../pages/reports/ReportsPage'); const Notifications = lazyPage('../pages/notifications/NotificationsPage'); const Settings = lazyPage('../pages/settings/SettingsPage'); const Business = lazyPage('../pages/settings/BusinessPage'); const Admin = lazyPage('../pages/admin/AdminPage');
-// Literal paths so Vite can emit these chunks — see the note below.
-const CsvUpload = lazy(() => import('../pages/inventory/CsvUploadPage'));
+// Workspace pages are code-split with literal specifiers, so Vite can analyse
+// and emit a chunk for each one.
 const Dashboard = lazy(() => import('../pages/dashboard/DashboardPage'));
 const Inventory = lazy(() => import('../pages/inventory/InventoryPage'));
+const Products = lazy(() => import('../pages/inventory/ProductsPage'));
+const Suppliers = lazy(() => import('../pages/inventory/SuppliersPage'));
+const CsvUpload = lazy(() => import('../pages/inventory/CsvUploadPage'));
+const Analytics = lazy(() => import('../pages/analytics/AnalyticsPage'));
+const AiInsights = lazy(() => import('../pages/ai/AiInsightsPage'));
+const Reports = lazy(() => import('../pages/reports/ReportsPage'));
+const Notifications = lazy(() => import('../pages/notifications/NotificationsPage'));
+const Admin = lazy(() => import('../pages/admin/AdminPage'));
+const Settings = lazy(() => import('../pages/settings/SettingsPage'));
+
 const render = (Page) => <Suspense fallback={<LoadingSpinner/>}><Page/></Suspense>;
 
 export default function AppRoutes() {
@@ -36,9 +44,10 @@ export default function AppRoutes() {
     {/* Signed in, but business setup is not finished yet. */}
     <Route path="business-setup" element={<ProtectedRoute requireBusiness={false}><BusinessSetupPage/></ProtectedRoute>}/>
 
-    {/* Signed in with a business — the workspace. */}
+    {/* Signed in with a business — the workspace. Business details live in
+        Settings, so there is no separate /business page. */}
     <Route element={<ProtectedRoute><AppLayout/></ProtectedRoute>}>
-      <Route path="dashboard" element={render(Dashboard)}/><Route path="inventory" element={render(Inventory)}/><Route path="products" element={render(Products)}/><Route path="suppliers" element={render(Suppliers)}/><Route path="analytics" element={render(Analytics)}/><Route path="ai-insights" element={render(AiInsights)}/><Route path="reports" element={render(Reports)}/><Route path="notifications" element={render(Notifications)}/><Route path="settings" element={render(Settings)}/><Route path="business" element={render(Business)}/><Route path="csv-upload" element={render(CsvUpload)}/><Route path="admin" element={render(Admin)}/>
+      <Route path="dashboard" element={render(Dashboard)}/><Route path="inventory" element={render(Inventory)}/><Route path="products" element={render(Products)}/><Route path="suppliers" element={render(Suppliers)}/><Route path="analytics" element={render(Analytics)}/><Route path="ai-insights" element={render(AiInsights)}/><Route path="reports" element={render(Reports)}/><Route path="notifications" element={render(Notifications)}/><Route path="settings" element={render(Settings)}/><Route path="csv-upload" element={render(CsvUpload)}/><Route path="admin" element={render(Admin)}/>
     </Route>
 
     <Route path="403" element={<ForbiddenPage/>}/>

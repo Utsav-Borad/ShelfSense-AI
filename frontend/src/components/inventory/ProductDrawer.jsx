@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
+import { useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import useDrawer from '../../hooks/useDrawer';
 import StatusBadge from './StatusBadge';
 import { HISTORY } from './data';
 
@@ -8,18 +9,9 @@ const EASE = [.16, 1, .3, 1];
 // A drawer, not a modal: it slides in from the right over a blurred backdrop
 // and leaves the table visible behind it.
 export default function ProductDrawer({ product, tab, onTab, onClose }) {
-  // Escape closes it, and the body stops scrolling while it is open.
-  useEffect(() => {
-    if (!product) return undefined;
-    const onKey = (event) => { if (event.key === 'Escape') onClose(); };
-    document.addEventListener('keydown', onKey);
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = previous;
-    };
-  }, [product, onClose]);
+  // Escape, scroll lock, focus trap and focus restore — shared by every drawer.
+  const panelRef = useRef(null);
+  useDrawer(Boolean(product), onClose, panelRef);
 
   const rows = product ? [
     ['Barcode', product.barcode], ['Brand', product.brand], ['Category', product.category],
@@ -44,6 +36,7 @@ export default function ProductDrawer({ product, tab, onTab, onClose }) {
             aria-hidden="true"
           />
           <motion.aside
+            ref={panelRef}
             className="inv-drawer"
             role="dialog"
             aria-modal="true"

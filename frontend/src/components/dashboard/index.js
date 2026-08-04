@@ -9,5 +9,4 @@ export { default as Recommendations } from './Recommendations';
 export { default as ActivityTimeline } from './ActivityTimeline';
 export { default as QuickActions } from './QuickActions';
 export { default as DashboardSkeleton } from './DashboardSkeleton';
-export { default as useCountUp } from './useCountUp';
 export * from './data';
