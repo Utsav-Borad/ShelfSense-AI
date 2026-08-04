@@ -1,0 +1,50 @@
+id,business_id,supplier_name,phone,email,address,status
+1,1,Aashirvaad Distributor,9800000001,aashirvaad@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+2,1,Amul Distributor,9800000002,amul@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+3,1,Apsara Distributor,9800000003,apsara@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+4,1,Ariel Distributor,9800000004,ariel@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+5,1,Bisleri Distributor,9800000005,bisleri@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+6,1,Britannia Distributor,9800000006,britannia@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+7,1,Cadbury Distributor,9800000007,cadbury@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+8,1,Camlin Distributor,9800000008,camlin@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+9,1,Cello Distributor,9800000009,cello@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+10,1,Classmate Distributor,9800000010,classmate@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+11,1,Clinic Plus Distributor,9800000011,clinicplus@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+12,1,Coca-Cola Distributor,9800000012,coca-cola@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+13,1,Colgate Distributor,9800000013,colgate@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+14,1,Dettol Distributor,9800000014,dettol@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+15,1,Dove Distributor,9800000015,dove@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+16,1,ENO Distributor,9800000016,eno@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+17,1,Everest Distributor,9800000017,everest@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+18,1,Ferrero Distributor,9800000018,ferrero@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+19,1,Fortune Distributor,9800000019,fortune@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+20,1,GSK Distributor,9800000020,gsk@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+21,1,Good Knight Distributor,9800000021,goodknight@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+22,1,Harpic Distributor,9800000022,harpic@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+23,1,Harvest Gold Distributor,9800000023,harvestgold@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+24,1,Head & Shoulders Distributor,9800000024,head&shoulders@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+25,1,Hit Distributor,9800000025,hit@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+26,1,ITC Distributor,9800000026,itc@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+27,1,India Gate Distributor,9800000027,indiagate@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+28,1,Johnson & Johnson Distributor,9800000028,johnson&johnson@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+29,1,Lay's Distributor,9800000029,lay's@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+30,1,Lizol Distributor,9800000030,lizol@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+31,1,Lux Distributor,9800000031,lux@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+32,1,McCain Distributor,9800000032,mccain@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+33,1,Micro Labs Distributor,9800000033,microlabs@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+34,1,Mother Dairy Distributor,9800000034,motherdairy@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+35,1,Nestle Distributor,9800000035,nestle@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+36,1,Nivea Distributor,9800000036,nivea@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+37,1,Parle Distributor,9800000037,parle@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+38,1,Pepsi Distributor,9800000038,pepsi@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+39,1,PepsiCo Distributor,9800000039,pepsico@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+40,1,Pidilite Distributor,9800000040,pidilite@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+41,1,Ponds Distributor,9800000041,ponds@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+42,1,Real Distributor,9800000042,real@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+43,1,Red Bull Distributor,9800000043,redbull@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+44,1,Safal Distributor,9800000044,safal@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+45,1,Surf Excel Distributor,9800000045,surfexcel@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+46,1,Tata Distributor,9800000046,tata@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+47,1,Tropicana Distributor,9800000047,tropicana@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+48,1,Vicks Distributor,9800000048,vicks@supplier.com,"Ahmedabad, Gujarat",ACTIVE
+49,1,Vim Distributor,9800000049,vim@supplier.com,"Ahmedabad, Gujarat",ACTIVE
