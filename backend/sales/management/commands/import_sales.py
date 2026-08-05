@@ -10,6 +10,7 @@ import csv
 from pathlib import Path
 
 from django.core.management.base import BaseCommand
+from django.db import transaction
 
 from products.models import Product
 from sales.models import Sales
@@ -18,15 +19,26 @@ from sales.models import Sales
 class Command(BaseCommand):
     help = "Import Sales CSV"
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--file",
+            dest="file",
+            help="Path to the CSV file. Defaults to dataset_generator/output/sales.csv.",
+        )
+
+    @transaction.atomic
     def handle(self, *args, **kwargs):
 
-        csv_file = (
+        default_csv_file = (
             Path(__file__)
             .resolve()
             .parents[4]
             / "dataset_generator"
             / "output"
             / "sales.csv"
+        )
+        csv_file = (
+            Path(kwargs["file"]) if kwargs.get("file") else default_csv_file
         )
 
         if not csv_file.exists():
@@ -37,8 +49,8 @@ class Command(BaseCommand):
             )
             return
 
-        Sales.objects.all().delete()
-
+        # Matched on id and updated in place, so importing a new day's sales
+        # adds to the history instead of replacing it.
         with open(
             csv_file,
             newline="",
@@ -55,25 +67,29 @@ class Command(BaseCommand):
                     id=int(row["product_id"])
                 )
 
-                Sales.objects.create(
+                Sales.objects.update_or_create(
 
                     id=int(row["id"]),
 
-                    product=product,
+                    defaults={
 
-                    invoice_number=row["invoice_number"],
+                        "product": product,
 
-                    sale_date=row["sale_date"],
+                        "invoice_number": row["invoice_number"],
 
-                    quantity_sold=int(
-                        row["quantity_sold"]
-                    ),
+                        "sale_date": row["sale_date"],
 
-                    selling_price=row["selling_price"],
+                        "quantity_sold": int(
+                            row["quantity_sold"]
+                        ),
 
-                    discount=row["discount"],
+                        "selling_price": row["selling_price"],
 
-                    total_amount=row["total_amount"],
+                        "discount": row["discount"],
+
+                        "total_amount": row["total_amount"],
+
+                    },
 
                 )
 

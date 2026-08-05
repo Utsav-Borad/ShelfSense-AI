@@ -10,6 +10,7 @@ import csv
 from pathlib import Path
 
 from django.core.management.base import BaseCommand
+from django.db import transaction
 
 from products.models import Product
 from inventory.models import Inventory
@@ -18,15 +19,26 @@ from inventory.models import Inventory
 class Command(BaseCommand):
     help = "Import Inventory CSV"
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--file",
+            dest="file",
+            help="Path to the CSV file. Defaults to dataset_generator/output/inventory.csv.",
+        )
+
+    @transaction.atomic
     def handle(self, *args, **kwargs):
 
-        csv_file = (
+        default_csv_file = (
             Path(__file__)
             .resolve()
             .parents[4]
             / "dataset_generator"
             / "output"
             / "inventory.csv"
+        )
+        csv_file = (
+            Path(kwargs["file"]) if kwargs.get("file") else default_csv_file
         )
 
         if not csv_file.exists():
@@ -37,8 +49,8 @@ class Command(BaseCommand):
             )
             return
 
-        Inventory.objects.all().delete()
-
+        # Matched on id and updated in place, so a stock refresh never removes
+        # the rows the analytics pipeline reads.
         with open(
             csv_file,
             newline="",
@@ -55,23 +67,27 @@ class Command(BaseCommand):
                     id=int(row["product_id"])
                 )
 
-                Inventory.objects.create(
+                Inventory.objects.update_or_create(
 
                     id=int(row["id"]),
 
-                    product=product,
+                    defaults={
 
-                    available_quantity=int(
-                        row["available_quantity"]
-                    ),
+                        "product": product,
 
-                    reserved_quantity=int(
-                        row["reserved_quantity"]
-                    ),
+                        "available_quantity": int(
+                            row["available_quantity"]
+                        ),
 
-                    damaged_quantity=int(
-                        row["damaged_quantity"]
-                    ),
+                        "reserved_quantity": int(
+                            row["reserved_quantity"]
+                        ),
+
+                        "damaged_quantity": int(
+                            row["damaged_quantity"]
+                        ),
+
+                    },
 
                 )
 

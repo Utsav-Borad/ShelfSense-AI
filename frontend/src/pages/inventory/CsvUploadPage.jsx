@@ -21,6 +21,8 @@ export default function CsvUploadPage() {
   const [phase, setPhase] = useState('upload');
   const [files, setFiles] = useState(EMPTY_FILES);
   const [view, setView] = useState('center');
+  // What the API reported for each imported file.
+  const [results, setResults] = useState([]);
 
   function restart() {
     setFiles(EMPTY_FILES);
@@ -69,10 +71,10 @@ export default function CsvUploadPage() {
                   <ValidationStage files={files} onBack={() => setPhase('upload')} onSynchronize={() => setPhase('sync')} />
                 )}
                 {phase === 'sync' && (
-                  <SyncStage files={files} onComplete={() => setPhase('complete')} />
+                  <SyncStage files={files} onComplete={() => setPhase('complete')} onResults={setResults} />
                 )}
                 {phase === 'complete' && (
-                  <CompleteStage files={files} onAnother={restart} />
+                  <CompleteStage files={files} results={results} onAnother={restart} />
                 )}
               </motion.div>
             </AnimatePresence>

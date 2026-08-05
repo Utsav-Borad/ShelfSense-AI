@@ -78,10 +78,12 @@ def analyze_inventory_loss():
         "inventory_status"
     ].apply(recommendation)
 
+    # `load_inventory()` returns product_id, not the product name, so the name
+    # is looked up by whoever presents this data.
     return inventory_df[
         [
             "id",
-            "product__product_name",
+            "product_id",
             "available_quantity",
             "damaged_quantity",
             "loss_percentage",

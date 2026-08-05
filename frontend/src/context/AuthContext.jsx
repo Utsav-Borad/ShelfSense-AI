@@ -1,4 +1,5 @@
 import { createContext, useEffect, useState } from 'react';
+import { getBusiness } from '../services/businessService';
 
 // Auth state for the whole app, using only useState + useEffect + createContext.
 // Read it anywhere with the useAuth() hook (useContext under the hood).
@@ -25,26 +26,54 @@ function readStored(key) {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [business, setBusiness] = useState(null);
-  // True until the first render has rehydrated from storage, so route guards
-  // do not bounce a signed-in user to /login on a hard refresh.
+  // True until the session has been restored *and* the business has been
+  // resolved, so route guards do not bounce a signed-in owner to /login on a
+  // hard refresh or to /business-setup while the business is still loading.
   const [isBootstrapping, setIsBootstrapping] = useState(true);
+
+  // Asks the API whether this account has a business. GET /business/ answers
+  // with data: null when setup is not finished, which is a normal state.
+  async function loadBusiness() {
+    try {
+      const response = await getBusiness();
+      const profile = response.data;
+      if (profile) localStorage.setItem(STORAGE.business, JSON.stringify(profile));
+      else localStorage.removeItem(STORAGE.business);
+      setBusiness(profile);
+      return profile;
+    } catch {
+      // The API is unreachable or rejected us. Fall back to the stored copy so
+      // a brief outage does not push an existing owner back through setup.
+      const stored = readStored(STORAGE.business);
+      setBusiness(stored);
+      return stored;
+    }
+  }
 
   // Runs once on mount to restore a previous session.
   useEffect(() => {
-    const token = localStorage.getItem(STORAGE.access);
-    const storedUser = readStored(STORAGE.user);
-    if (token && storedUser) {
-      setUser(storedUser);
-      setBusiness(readStored(STORAGE.business));
+    async function restore() {
+      const token = localStorage.getItem(STORAGE.access);
+      const storedUser = readStored(STORAGE.user);
+      if (token && storedUser) {
+        setUser(storedUser);
+        // Show the stored business immediately, then confirm it with the API.
+        setBusiness(readStored(STORAGE.business));
+        await loadBusiness();
+      }
+      setIsBootstrapping(false);
     }
-    setIsBootstrapping(false);
+    restore();
   }, []);
 
-  function login(account, tokens = {}) {
+  // Awaited by the login page, so navigation only happens once we know whether
+  // this owner still needs to complete business setup.
+  async function login(account, tokens = {}) {
     if (tokens.access) localStorage.setItem(STORAGE.access, tokens.access);
     if (tokens.refresh) localStorage.setItem(STORAGE.refresh, tokens.refresh);
     localStorage.setItem(STORAGE.user, JSON.stringify(account));
     setUser(account);
+    return loadBusiness();
   }
 
   function logout() {

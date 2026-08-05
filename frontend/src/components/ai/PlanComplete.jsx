@@ -1,13 +1,12 @@
 import { motion } from 'framer-motion';
 import useCountUp from '../../hooks/useCountUp';
-import { ESTIMATED_IMPROVEMENT } from './data';
 
 const EASE = [.16, 1, .3, 1];
 
 // Shown when every recommendation in today's plan has been actioned. A drawn
 // check and a settled figure — no confetti.
-export default function PlanComplete({ completed, total, onReview }) {
-  const improvement = useCountUp(ESTIMATED_IMPROVEMENT, { duration: 1600, delay: 350 });
+export default function PlanComplete({ completed, total, onReview, improvement: target = 0 }) {
+  const improvement = useCountUp(target, { duration: 1600, delay: 350 });
 
   return (
     <motion.section

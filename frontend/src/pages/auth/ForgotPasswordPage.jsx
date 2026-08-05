@@ -40,10 +40,6 @@ export default function ForgotPasswordPage() {
             <p className="auth-switch">
               Didn’t get it? <button type="button" className="auth-linkbutton" onClick={() => setSent(false)}>Try another address</button>
             </p>
-            <p className="auth-demo-note">
-              <i className="bi bi-info-circle" aria-hidden="true" />
-              Placeholder mode — no email is sent. Open <Link to="/reset-password?token=demo">the reset screen</Link> directly to continue.
-            </p>
           </motion.div>
         ) : (
           <motion.div key="form" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: .45, ease: EASE }}>
@@ -63,7 +59,7 @@ export default function ForgotPasswordPage() {
                 autoComplete="email"
                 autoFocus
                 error={errors.email?.message}
-                {...register('email', rules.email)}
+                field={register('email', rules.email)}
               />
               <SubmitButton loading={isSubmitting}>Send reset link <i className="bi bi-arrow-right" aria-hidden="true" /></SubmitButton>
             </form>

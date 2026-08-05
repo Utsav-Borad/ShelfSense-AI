@@ -1,19 +1,21 @@
-import { forwardRef } from 'react';
 import { motion } from 'framer-motion';
 
-// Reusable field for react-hook-form. Pass the spread from register() in:
-//   <FormField label="Email" {...form.register('email', rules.email)} error={…} />
+// Reusable field for react-hook-form. Pass register()'s return value in as the
+// `field` prop:
+//   <FormField label="Email" field={form.register('email', rules.email)} error={…} />
 //
-// forwardRef is needed because register() hands us a ref. The id is derived
-// from `name` (which register() also provides), so there is nothing extra to
-// keep in sync.
+// register() returns { name, onChange, onBlur, ref }. We pull the ref out and
+// put it straight on the native <input> — a ref on a DOM element is ordinary
+// JSX, so this component stays a plain function. The id is derived from
+// `name` (which register() also provides), so there is nothing to keep in sync.
 //
 // Accessibility: label bound by id, error announced via aria-describedby +
 // role="alert", aria-invalid flips with the error.
-const FormField = forwardRef(function FormField(
-  { name, label, error, hint, icon, type = 'text', className = '', trailing, ...props },
-  ref,
-) {
+export default function FormField({
+  field = {}, label, error, hint, icon, type = 'text', className = '', trailing, ...props
+}) {
+  const { ref, ...registered } = field;
+  const name = registered.name;
   const fieldId = `field-${name}`;
   const errorId = `${fieldId}-error`;
   const hintId = `${fieldId}-hint`;
@@ -27,11 +29,11 @@ const FormField = forwardRef(function FormField(
         <input
           ref={ref}
           id={fieldId}
-          name={name}
           type={type}
           className="auth-input"
           aria-invalid={error ? 'true' : 'false'}
           aria-describedby={describedBy}
+          {...registered}
           {...props}
         />
         {trailing}
@@ -51,6 +53,4 @@ const FormField = forwardRef(function FormField(
       )}
     </div>
   );
-});
-
-export default FormField;
+}

@@ -1,7 +1,5 @@
-import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import AppLayout from '../layouts/AppLayout';
-import LoadingSpinner from '../components/ui/LoadingSpinner';
 import NotFoundPage from '../pages/errors/NotFoundPage';
 import ServerErrorPage from '../pages/errors/ServerErrorPage';
 import ForbiddenPage from '../pages/auth/ForbiddenPage';
@@ -15,21 +13,18 @@ import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from '../pages/auth/ResetPasswordPage';
 import BusinessSetupPage from '../pages/auth/BusinessSetupPage';
 
-// Workspace pages are code-split with literal specifiers, so Vite can analyse
-// and emit a chunk for each one.
-const Dashboard = lazy(() => import('../pages/dashboard/DashboardPage'));
-const Inventory = lazy(() => import('../pages/inventory/InventoryPage'));
-const Products = lazy(() => import('../pages/inventory/ProductsPage'));
-const Suppliers = lazy(() => import('../pages/inventory/SuppliersPage'));
-const CsvUpload = lazy(() => import('../pages/inventory/CsvUploadPage'));
-const Analytics = lazy(() => import('../pages/analytics/AnalyticsPage'));
-const AiInsights = lazy(() => import('../pages/ai/AiInsightsPage'));
-const Reports = lazy(() => import('../pages/reports/ReportsPage'));
-const Notifications = lazy(() => import('../pages/notifications/NotificationsPage'));
-const Admin = lazy(() => import('../pages/admin/AdminPage'));
-const Settings = lazy(() => import('../pages/settings/SettingsPage'));
-
-const render = (Page) => <Suspense fallback={<LoadingSpinner/>}><Page/></Suspense>;
+// Workspace pages.
+import Dashboard from '../pages/dashboard/DashboardPage';
+import Inventory from '../pages/inventory/InventoryPage';
+import Products from '../pages/inventory/ProductsPage';
+import Suppliers from '../pages/inventory/SuppliersPage';
+import CsvUpload from '../pages/inventory/CsvUploadPage';
+import Analytics from '../pages/analytics/AnalyticsPage';
+import AiInsights from '../pages/ai/AiInsightsPage';
+import Reports from '../pages/reports/ReportsPage';
+import Notifications from '../pages/notifications/NotificationsPage';
+import Admin from '../pages/admin/AdminPage';
+import Settings from '../pages/settings/SettingsPage';
 
 export default function AppRoutes() {
   return <Routes>
@@ -46,9 +41,17 @@ export default function AppRoutes() {
 
     {/* Signed in with a business — the workspace. Business details live in
         Settings, so there is no separate /business page. */}
-    <Route element={<ProtectedRoute><AppLayout/></ProtectedRoute>}>
-      <Route path="dashboard" element={render(Dashboard)}/><Route path="inventory" element={render(Inventory)}/><Route path="products" element={render(Products)}/><Route path="suppliers" element={render(Suppliers)}/><Route path="analytics" element={render(Analytics)}/><Route path="ai-insights" element={render(AiInsights)}/><Route path="reports" element={render(Reports)}/><Route path="notifications" element={render(Notifications)}/><Route path="settings" element={render(Settings)}/><Route path="csv-upload" element={render(CsvUpload)}/><Route path="admin" element={render(Admin)}/>
-    </Route>
+    <Route path="dashboard" element={<ProtectedRoute><AppLayout><Dashboard/></AppLayout></ProtectedRoute>}/>
+    <Route path="inventory" element={<ProtectedRoute><AppLayout><Inventory/></AppLayout></ProtectedRoute>}/>
+    <Route path="products" element={<ProtectedRoute><AppLayout><Products/></AppLayout></ProtectedRoute>}/>
+    <Route path="suppliers" element={<ProtectedRoute><AppLayout><Suppliers/></AppLayout></ProtectedRoute>}/>
+    <Route path="analytics" element={<ProtectedRoute><AppLayout><Analytics/></AppLayout></ProtectedRoute>}/>
+    <Route path="ai-insights" element={<ProtectedRoute><AppLayout><AiInsights/></AppLayout></ProtectedRoute>}/>
+    <Route path="reports" element={<ProtectedRoute><AppLayout><Reports/></AppLayout></ProtectedRoute>}/>
+    <Route path="notifications" element={<ProtectedRoute><AppLayout><Notifications/></AppLayout></ProtectedRoute>}/>
+    <Route path="settings" element={<ProtectedRoute><AppLayout><Settings/></AppLayout></ProtectedRoute>}/>
+    <Route path="csv-upload" element={<ProtectedRoute><AppLayout><CsvUpload/></AppLayout></ProtectedRoute>}/>
+    <Route path="admin" element={<ProtectedRoute><AppLayout><Admin/></AppLayout></ProtectedRoute>}/>
 
     <Route path="403" element={<ForbiddenPage/>}/>
     <Route path="500" element={<ServerErrorPage/>}/>

@@ -1,15 +1,14 @@
 import { motion } from 'framer-motion';
 import useCountUp from '../../hooks/useCountUp';
-import { HEALTH } from './data';
 
 const EASE = [.16, 1, .3, 1];
 const RADIUS = 78;
 
 // The hero. A gauge that counts 0 -> score while its arc draws, with a few
 // particles orbiting the ring so the card feels alive rather than static.
-export default function HealthHero() {
-  const score = useCountUp(HEALTH.score, { duration: 1900, delay: 260 });
-  const fraction = HEALTH.score / 100;
+export default function HealthHero({ health }) {
+  const score = useCountUp(health.score, { duration: 1900, delay: 260 });
+  const fraction = health.score / 100;
 
   return (
     <motion.section
@@ -23,14 +22,14 @@ export default function HealthHero() {
       <div className="dash-hero-copy">
         <p className="dash-eyebrow"><i className="bi bi-heart-pulse" aria-hidden="true" />Business health</p>
         <h2>
-          Your business is <em>{HEALTH.status.toLowerCase()}</em> today.
+          Your business is <em>{health.status.toLowerCase()}</em> today.
         </h2>
         <p className="dash-hero-lead">
-          Composed from ten metrics across stock cover, margin, expiry exposure and supplier reliability.
+          Composed from the model's read on every analysed product: stock cover, expiry exposure and how right-sized your stock is.
         </p>
 
         <ul className="dash-factors">
-          {HEALTH.factors.map(([label, value], index) => (
+          {health.factors.map(([label, value], index) => (
             <li key={label}>
               <span className="dash-factor-head"><small>{label}</small><b>{value}</b></span>
               <span className="dash-factor-track">
@@ -57,7 +56,7 @@ export default function HealthHero() {
           ))}
         </span>
 
-        <svg viewBox="0 0 180 180" role="img" aria-label={`Business health score ${HEALTH.score} out of 100`}>
+        <svg viewBox="0 0 180 180" role="img" aria-label={`Business health score ${health.score} out of 100`}>
           <circle className="dash-gauge-track" cx="90" cy="90" r={RADIUS} />
           <motion.circle
             className="dash-gauge-arc"
@@ -71,10 +70,7 @@ export default function HealthHero() {
         <div className="dash-gauge-value">
           <strong>{Math.round(score)}</strong>
           <span>/100</span>
-          <em className={`dash-trend is-${HEALTH.trend}`}>
-            <i className={`bi bi-arrow-${HEALTH.trend === 'up' ? 'up' : 'down'}-right`} aria-hidden="true" />
-            {HEALTH.delta} {HEALTH.since}
-          </em>
+          <em className="dash-trend is-flat">{health.status}</em>
         </div>
       </div>
     </motion.section>

@@ -15,13 +15,30 @@ class DemandForecastEngine:
     MODEL_PATH = ARTIFACT_DIRECTORY / "decision_tree.pkl"
     PREPROCESSING_PATH = ARTIFACT_DIRECTORY / "decision_tree_preprocessing.pkl"
 
+    # Reading the saved decision tree off disk costs far more than using it, and
+    # the artifacts never change while the server is running. They are loaded
+    # once per file path and shared by every engine instance afterwards.
+    _ARTIFACT_CACHE = {}
+
+    @classmethod
+    def _load_artifacts(cls, model_path, preprocessing_path):
+        key = (str(model_path), str(preprocessing_path))
+        if key not in cls._ARTIFACT_CACHE:
+            cls._ARTIFACT_CACHE[key] = (
+                joblib.load(model_path),
+                joblib.load(preprocessing_path),
+            )
+        return cls._ARTIFACT_CACHE[key]
+
     def __init__(self, model_path=None, preprocessing_path=None):
         self.model_path = Path(model_path or self.MODEL_PATH)
         self.preprocessing_path = Path(
             preprocessing_path or self.PREPROCESSING_PATH
         )
-        self.model = joblib.load(self.model_path)
-        self.preprocessing_pipeline = joblib.load(self.preprocessing_path)
+        self.model, self.preprocessing_pipeline = self._load_artifacts(
+            self.model_path,
+            self.preprocessing_path,
+        )
 
     @staticmethod
     def _numeric(value):

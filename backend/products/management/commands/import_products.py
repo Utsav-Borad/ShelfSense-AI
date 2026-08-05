@@ -10,6 +10,7 @@ import csv
 from pathlib import Path
 
 from django.core.management.base import BaseCommand
+from django.db import transaction
 
 from business.models import Business
 from categories.models import Category
@@ -20,15 +21,26 @@ from products.models import Product
 class Command(BaseCommand):
     help = "Import Products CSV"
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--file",
+            dest="file",
+            help="Path to the CSV file. Defaults to dataset_generator/output/products.csv.",
+        )
+
+    @transaction.atomic
     def handle(self, *args, **kwargs):
 
-        csv_file = (
+        default_csv_file = (
             Path(__file__)
             .resolve()
             .parents[4]
             / "dataset_generator"
             / "output"
             / "products.csv"
+        )
+        csv_file = (
+            Path(kwargs["file"]) if kwargs.get("file") else default_csv_file
         )
 
         if not csv_file.exists():
@@ -39,8 +51,8 @@ class Command(BaseCommand):
             )
             return
 
-        Product.objects.all().delete()
-
+        # Matched on id and updated in place — clearing the table would cascade
+        # into inventory and sales.
         with open(
             csv_file,
             newline="",
@@ -65,35 +77,39 @@ class Command(BaseCommand):
                     id=int(row["supplier_id"])
                 )
 
-                Product.objects.create(
+                Product.objects.update_or_create(
 
                     id=int(row["id"]),
 
-                    business=business,
+                    defaults={
 
-                    category=category,
+                        "business": business,
 
-                    supplier=supplier,
+                        "category": category,
 
-                    barcode=row["barcode"],
+                        "supplier": supplier,
 
-                    product_name=row["product_name"],
+                        "barcode": row["barcode"],
 
-                    brand=row["brand"],
+                        "product_name": row["product_name"],
 
-                    unit=row["unit"],
+                        "brand": row["brand"],
 
-                    mrp=row["mrp"],
+                        "unit": row["unit"],
 
-                    selling_price=row["selling_price"],
+                        "mrp": row["mrp"],
 
-                    manufacturing_date=row["manufacturing_date"],
+                        "selling_price": row["selling_price"],
 
-                    expiry_date=row["expiry_date"],
+                        "manufacturing_date": row["manufacturing_date"],
 
-                    minimum_stock=int(row["minimum_stock"]),
+                        "expiry_date": row["expiry_date"],
 
-                    status=row["status"],
+                        "minimum_stock": int(row["minimum_stock"]),
+
+                        "status": row["status"],
+
+                    },
 
                 )
 

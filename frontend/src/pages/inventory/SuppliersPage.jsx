@@ -3,13 +3,17 @@ import { AnimatePresence, motion } from 'framer-motion';
 import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
 import {
-  SUPPLIERS, SupplierCard, SupplierDrawer, SupplierIntelligence,
-  SupplierTable, SupplierToolbar, supplierIntelligence,
+  SupplierCard, SupplierDrawer, SupplierIntelligence,
+  SupplierTable, SupplierToolbar,
 } from '../../components/suppliers';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import { supplierIntelligence, toSuppliers } from '../../components/suppliers/fromApi';
+import { getRecommendations } from '../../services/aiService';
+import { getSupplierAnalytics } from '../../services/analyticsService';
+import { getProducts, getSuppliers } from '../../services/inventoryService';
 import '../../styles/suppliers.css';
 
 const EASE = [.16, 1, .3, 1];
-const intelligence = supplierIntelligence(SUPPLIERS);
 
 function SupplierSkeleton({ view }) {
   return (
@@ -25,40 +29,52 @@ export default function SuppliersPage() {
   const [ready, setReady] = useState(false);
 
   const [query, setQuery] = useState('');
-  const [category, setCategory] = useState('all');
   const [status, setStatus] = useState('all');
-  const [delivery, setDelivery] = useState('all');
-  const [delays, setDelays] = useState('all');
-  const [sort, setSort] = useState('reliability');
+  const [sort, setSort] = useState('share');
   const [view, setView] = useState('grid');
   const [highlighted, setHighlighted] = useState([]);
   const [openSupplier, setOpenSupplier] = useState(null);
 
+  const [suppliers, setSuppliers] = useState([]);
+
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 900);
-    return () => clearTimeout(timer);
+    let active = true;
+
+    async function load() {
+      try {
+        const [analytics, details, products, ai] = await Promise.all([
+          getSupplierAnalytics(), getSuppliers(), getProducts(), getRecommendations(),
+        ]);
+        if (!active) return;
+        setSuppliers(toSuppliers(analytics.data.suppliers, details.data, products.data, ai.data.recommendations));
+        setError(false);
+      } catch {
+        if (active) setError(true);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    load();
+    return () => { active = false; };
   }, []);
 
+  const intelligence = supplierIntelligence(suppliers);
+
   const term = query.trim().toLowerCase();
-  const filtered = SUPPLIERS
+  const filtered = suppliers
     .filter((supplier) => {
-      if (term && ![supplier.name, supplier.code, ...supplier.categories]
-        .some((field) => field.toLowerCase().includes(term))) return false;
-      if (category !== 'all' && !supplier.categories.includes(category)) return false;
+      if (term && ![supplier.name, supplier.code, supplier.email]
+        .some((field) => String(field).toLowerCase().includes(term))) return false;
       if (status !== 'all' && supplier.status !== status) return false;
-      if (delivery !== 'all' && supplier.avgDays > Number(delivery)) return false;
-      if (delays === 'clean' && supplier.delayedRecent > 0) return false;
-      if (delays === 'delayed' && supplier.delayedRecent === 0) return false;
       return true;
     })
     .sort((a, b) => {
       if (sort === 'name') return a.name.localeCompare(b.name);
-      if (sort === 'avgDays') return a.avgDays - b.avgDays;
       return b[sort] - a[sort];
     });
 
-  const isFiltered = Boolean(term) || category !== 'all' || status !== 'all'
-    || delivery !== 'all' || delays !== 'all' || highlighted.length > 0;
+  const isFiltered = Boolean(term) || status !== 'all' || highlighted.length > 0;
 
   // A brief line applies its filter and marks the supplier it named, so the
   // reader can see exactly who the sentence was about.
@@ -83,6 +99,10 @@ export default function SuppliersPage() {
 
   const clearHighlight = (setter) => (value) => { setter(value); setHighlighted([]); };
 
+  if (loading) {
+    return <div className="sp"><LoadingSpinner label="Reading your supply base" /></div>;
+  }
+
   return (
     <div className="sp">
       <SupplierIntelligence
@@ -103,19 +123,13 @@ export default function SuppliersPage() {
               <SupplierToolbar
                 query={query}
                 onQuery={clearHighlight(setQuery)}
-                category={category}
-                onCategory={clearHighlight(setCategory)}
                 status={status}
                 onStatus={clearHighlight(setStatus)}
-                delivery={delivery}
-                onDelivery={clearHighlight(setDelivery)}
-                delays={delays}
-                onDelays={clearHighlight(setDelays)}
                 sort={sort}
                 onSort={setSort}
                 view={view}
                 onView={setView}
-                total={SUPPLIERS.length}
+                total={suppliers.length}
                 shown={filtered.length}
                 filtered={isFiltered}
                 onReset={resetFilters}

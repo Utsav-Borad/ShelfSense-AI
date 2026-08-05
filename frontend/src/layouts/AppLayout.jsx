@@ -1,13 +1,14 @@
-import { Outlet, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import Sidebar from '../components/layout/Sidebar';
 import Topbar from '../components/layout/Topbar';
 import Footer from '../components/layout/Footer';
+import ErrorBoundary from '../components/ui/ErrorBoundary';
 
 // One route transition for the whole workspace, so moving between pages feels
 // like a single application rather than eleven separate ones. Keyed on the
 // pathname; `mode="wait"` lets the old page leave before the new one arrives.
-export default function AppLayout() {
+export default function AppLayout({ children }) {
   const { pathname } = useLocation();
 
   return (
@@ -25,7 +26,9 @@ export default function AppLayout() {
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: .26, ease: [.16, 1, .3, 1] }}
             >
-              <Outlet />
+              {/* Keyed on the path so a crash on one page clears when you
+                  navigate to another. */}
+              <ErrorBoundary key={pathname}>{children}</ErrorBoundary>
             </motion.div>
           </AnimatePresence>
         </main>

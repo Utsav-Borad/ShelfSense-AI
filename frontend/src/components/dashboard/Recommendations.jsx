@@ -1,31 +1,12 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { RECOMMENDATIONS } from './data';
 
 const EASE = [.16, 1, .3, 1];
-const RADIUS = 20;
 
-// Every recommendation carries its priority, confidence, reasoning, expected
-// impact and the action it suggests — the documented output shape.
-function ConfidenceRing({ value, delay }) {
-  return (
-    <span className="dash-ring" aria-label={`${value}% confidence`}>
-      <svg viewBox="0 0 48 48" aria-hidden="true">
-        <circle className="dash-ring-track" cx="24" cy="24" r={RADIUS} />
-        <motion.circle
-          className="dash-ring-arc"
-          cx="24" cy="24" r={RADIUS}
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: value / 100 }}
-          transition={{ duration: 1.2, delay, ease: EASE }}
-        />
-      </svg>
-      <b>{value}<i>%</i></b>
-    </span>
-  );
-}
-
-export default function Recommendations() {
+// Each recommendation carries its priority, the reasoning behind it and the
+// stock evidence it was drawn from. The engine ranks by priority rather than
+// emitting a confidence score, so no confidence is shown.
+export default function Recommendations({ items = [] }) {
   return (
     <section className="dash-recs" aria-label="AI recommendations">
       <header className="dash-section-head">
@@ -37,7 +18,7 @@ export default function Recommendations() {
       </header>
 
       <div className="dash-rec-grid">
-        {RECOMMENDATIONS.map((rec, index) => (
+        {items.map((rec, index) => (
           <motion.article
             key={rec.id}
             className={`dash-card dash-rec tone-${rec.tone}`}
@@ -56,15 +37,13 @@ export default function Recommendations() {
                 <i className={`bi ${rec.icon}`} aria-hidden="true" />
               </motion.span>
               <span className={`dash-priority is-${rec.priority.toLowerCase()}`}>{rec.priority} priority</span>
-              <ConfidenceRing value={rec.confidence} delay={.4 + index * .12} />
             </header>
 
             <h3>{rec.title}</h3>
 
             <dl className="dash-rec-rows">
               <div><dt>Why</dt><dd>{rec.reason}</dd></div>
-              <div><dt>Expected impact</dt><dd>{rec.impact}</dd></div>
-              <div><dt>Suggested action</dt><dd>{rec.action}</dd></div>
+              <div><dt>Current position</dt><dd>{rec.impact}</dd></div>
             </dl>
 
             <footer className="dash-rec-foot">

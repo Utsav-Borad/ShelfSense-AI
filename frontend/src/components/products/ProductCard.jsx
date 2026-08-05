@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import { Sparkline } from '../charts';
 import useCountUp from '../../hooks/useCountUp';
 import { STATUS_META } from './data';
 
@@ -71,20 +70,13 @@ export default function ProductCard({ product, index, highlighted, onOpen }) {
           </div>
           <div>
             <dt>Demand</dt>
-            <dd className={product.trend >= 0 ? 'is-up' : 'is-down'}>
-              <i className={`bi bi-arrow-${product.trend >= 0 ? 'up' : 'down'}-short`} aria-hidden="true" />
-              {Math.abs(product.trend)}%
-            </dd>
+            <dd>{product.predicted === null ? '—' : `${product.predicted} predicted`}</dd>
           </div>
           <div>
             <dt>Value</dt>
             <dd>₹{product.value.toLocaleString('en-IN')}</dd>
           </div>
         </dl>
-
-        <div className="pi-card-spark">
-          <Sparkline values={product.spark} tone={product.trend >= 0 ? 'olive' : 'danger'} delay={delay + .3} />
-        </div>
       </div>
     </motion.article>
   );

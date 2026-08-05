@@ -25,7 +25,7 @@ export default function ReportPreview({ report, range, onExport, onClose }) {
               <div>
                 <p className="rp-eyebrow">Report preview</p>
                 <h3>{report.title}</h3>
-                <small>{range} · {report.pages} pages</small>
+                <small>{range} · {report.range}</small>
               </div>
               <button type="button" className="rp-preview-close" onClick={onClose} aria-label="Close preview">
                 <i className="bi bi-x-lg" aria-hidden="true" />
@@ -73,7 +73,7 @@ export default function ReportPreview({ report, range, onExport, onClose }) {
                 </tbody>
               </table>
 
-              <p className="rp-page-more">…and {report.pages - 1} more pages</p>
+              <p className="rp-page-more">…and the remaining sections</p>
             </div>
 
             <section className="rp-sections">

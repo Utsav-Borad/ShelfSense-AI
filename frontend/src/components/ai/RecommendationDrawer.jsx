@@ -1,7 +1,6 @@
 import { useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import useDrawer from '../../hooks/useDrawer';
-import ConfidenceRing from './ConfidenceRing';
 import { PRIORITY_META } from './data';
 
 const EASE = [.16, 1, .3, 1];
@@ -52,7 +51,6 @@ export default function RecommendationDrawer({ recommendation, onAccept, onDismi
 
             <div className="ai-drawer-body">
               <div className="ai-drawer-summary">
-                <ConfidenceRing value={recommendation.confidence} delay={.25} size="lg" label="AI confidence" />
                 <div>
                   <strong>₹{recommendation.impactValue.toLocaleString('en-IN')}</strong>
                   <small>{recommendation.impactLabel}</small>

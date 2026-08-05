@@ -15,7 +15,7 @@ export default function ReportCard({ report, index, isSelected, onSelect }) {
 
       <header>
         <span className="rp-card-icon"><i className={`bi ${report.icon}`} aria-hidden="true" /></span>
-        <span className="rp-card-pages">{report.pages} pages</span>
+        <span className="rp-card-pages">{report.range}</span>
       </header>
 
       <h3>{report.title}</h3>
@@ -28,7 +28,7 @@ export default function ReportCard({ report, index, isSelected, onSelect }) {
       </dl>
 
       <footer>
-        <span className="rp-card-last"><i className="bi bi-clock-history" aria-hidden="true" />Last run {report.lastRun}</span>
+        <span className="rp-card-last"><i className="bi bi-clock-history" aria-hidden="true" />{report.exportable ? 'CSV export available' : 'View only'}</span>
         <button type="button" className="rp-btn rp-btn-primary" onClick={() => onSelect(report)}>
           {isSelected ? 'Viewing' : 'Preview'} <i className="bi bi-arrow-right" aria-hidden="true" />
         </button>

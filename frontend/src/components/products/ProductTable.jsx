@@ -1,11 +1,10 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { Sparkline } from '../charts';
 import { ScoreRing } from './ProductCard';
 import { STATUS_META } from './data';
 
 const EASE = [.16, 1, .3, 1];
 
-// Same data, denser reading. Shares the card's score ring and sparkline so the
+// Same data, denser reading. Shares the card's score ring so the
 // two views stay recognisably the same product.
 export default function ProductTable({ products, highlighted, onOpen }) {
   return (
@@ -51,13 +50,7 @@ export default function ProductTable({ products, highlighted, onOpen }) {
                   </td>
                   <td>
                     <span className="pi-table-demand">
-                      <em className={product.trend >= 0 ? 'is-up' : 'is-down'}>
-                        <i className={`bi bi-arrow-${product.trend >= 0 ? 'up' : 'down'}-short`} aria-hidden="true" />
-                        {Math.abs(product.trend)}%
-                      </em>
-                      <span className="pi-table-spark">
-                        <Sparkline values={product.spark} tone={product.trend >= 0 ? 'olive' : 'danger'} delay={.1} />
-                      </span>
+                      <em>{product.predicted === null ? '—' : `${product.predicted} predicted`}</em>
                     </span>
                   </td>
                   <td className="is-numeric">₹{product.value.toLocaleString('en-IN')}</td>

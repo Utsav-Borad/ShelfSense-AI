@@ -1,35 +1,35 @@
 import apiClient from './axios';
+import { normalizeError } from './apiError';
 
-// Service structure only — see the note in authService.js. Endpoints match the
-// documented contract; the placeholder branch keeps the UI exercisable until
-// the backend routes are live.
-const USE_PLACEHOLDER = true;
-
-const delay = (ms = 900) => new Promise((resolve) => { setTimeout(resolve, ms); });
-const envelope = (data, message = 'Success') => ({ status: true, message, data });
-
-/** GET /business/ — the owner's single business, or null if not set up yet. */
+/** GET /business/ — the owner's single business, or data: null when the
+ *  business has not been set up yet. */
 export async function getBusiness() {
-  if (USE_PLACEHOLDER) { await delay(400); return envelope(null); }
-  const { data } = await apiClient.get('business/');
-  return data;
+  try {
+    const { data } = await apiClient.get('business/');
+    return data;
+  } catch (error) {
+    throw normalizeError(error, 'We could not load your business details.');
+  }
 }
 
 /** POST /business/  body: { shop_name, shop_type, address, phone, gst_number } */
 export async function createBusiness(payload) {
-  if (USE_PLACEHOLDER) {
-    await delay();
-    return envelope({ id: 1, owner: 1, created_at: new Date().toISOString(), ...payload }, 'Business created successfully.');
+  try {
+    const { data } = await apiClient.post('business/', payload);
+    return data;
+  } catch (error) {
+    throw normalizeError(error, 'We could not save your business. Please try again.');
   }
-  const { data } = await apiClient.post('business/', payload);
-  return data;
 }
 
 /** PUT /business/{id}/ */
 export async function updateBusiness(id, payload) {
-  if (USE_PLACEHOLDER) { await delay(); return envelope({ id, ...payload }, 'Business updated.'); }
-  const { data } = await apiClient.put(`business/${id}/`, payload);
-  return data;
+  try {
+    const { data } = await apiClient.put(`business/${id}/`, payload);
+    return data;
+  } catch (error) {
+    throw normalizeError(error, 'We could not update your business. Please try again.');
+  }
 }
 
 export default { getBusiness, createBusiness, updateBusiness };

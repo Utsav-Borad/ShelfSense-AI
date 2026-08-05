@@ -9,7 +9,7 @@ const RADIUS = 72;
 // intelligence pages read as one system.
 export default function SupplierIntelligence({ intelligence, onInsight, onReady }) {
   const [shown, setShown] = useState(0);
-  const score = useCountUp(intelligence.averageReliability, { duration: 1800, delay: 320 });
+  const score = useCountUp(intelligence.healthScore, { duration: 1800, delay: 320 });
   const lines = intelligence.lines;
   const analysing = shown < lines.length;
 
@@ -32,25 +32,25 @@ export default function SupplierIntelligence({ intelligence, onInsight, onReady 
 
       <div className="sp-hero-score">
         <div className="sp-gauge">
-          <svg viewBox="0 0 170 170" role="img" aria-label={`Average supplier reliability ${intelligence.averageReliability} out of 100`}>
+          <svg viewBox="0 0 170 170" role="img" aria-label={`Supply health ${intelligence.healthScore} out of 100`}>
             <circle className="sp-gauge-track" cx="85" cy="85" r={RADIUS} />
             <motion.circle
               className="sp-gauge-arc"
               cx="85" cy="85" r={RADIUS}
               initial={{ pathLength: 0 }}
-              animate={{ pathLength: intelligence.averageReliability / 100 }}
+              animate={{ pathLength: intelligence.healthScore / 100 }}
               transition={{ duration: 1.8, delay: .32, ease: EASE }}
             />
           </svg>
           <div className="sp-gauge-value">
             <strong>{Math.round(score)}</strong>
-            <span>avg reliability</span>
+            <span>supply health</span>
           </div>
         </div>
 
         <div className="sp-hero-mini">
           <span><b>{intelligence.preferred}</b>preferred</span>
-          <span><b>{intelligence.atRisk}</b>at risk</span>
+          <span><b>{intelligence.needsAttention}</b>need attention</span>
         </div>
       </div>
 

@@ -86,23 +86,23 @@ export default function BusinessSetupPage() {
               <motion.div key={step} custom={direction} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: .34, ease: EASE }}>
                 {step === 0 && (
                   <>
-                    <FormField label="Shop name" icon="bi-shop" placeholder="Borad Provision Store" autoFocus error={errors.shop_name?.message} {...register('shop_name', rules.shopName)} />
-                    <SelectField label="Type of shop" placeholder="Select the closest match" options={SHOP_TYPES} error={errors.shop_type?.message} {...register('shop_type', rules.shopType)} />
+                    <FormField label="Shop name" icon="bi-shop" placeholder="Borad Provision Store" autoFocus error={errors.shop_name?.message} field={register('shop_name', rules.shopName)} />
+                    <SelectField label="Type of shop" placeholder="Select the closest match" options={SHOP_TYPES} error={errors.shop_type?.message} field={register('shop_type', rules.shopType)} />
                     <fieldset className="auth-fieldset">
                       <legend>Business address</legend>
                       <div className="auth-grid-2">
-                        <FormField label="Flat / House / Shop no." icon="bi-house" placeholder="B-402" error={errors.address_line?.message} {...register('address_line', rules.addressLine)} />
-                        <FormField label="Building / Society" icon="bi-buildings" placeholder="Shanti Residency" error={errors.society?.message} {...register('society', rules.society)} />
+                        <FormField label="Flat / House / Shop no." icon="bi-house" placeholder="B-402" error={errors.address_line?.message} field={register('address_line', rules.addressLine)} />
+                        <FormField label="Building / Society" icon="bi-buildings" placeholder="Shanti Residency" error={errors.society?.message} field={register('society', rules.society)} />
                       </div>
-                      <FormField label="Area / Locality" icon="bi-signpost" placeholder="Satellite" error={errors.area?.message} {...register('area', rules.area)} />
+                      <FormField label="Area / Locality" icon="bi-signpost" placeholder="Satellite" error={errors.area?.message} field={register('area', rules.area)} />
                       <div className="auth-grid-2">
-                        <FormField label="City" icon="bi-geo-alt" placeholder="Ahmedabad" error={errors.city?.message} {...register('city', rules.city)} />
-                        <FormField label="PIN code" icon="bi-mailbox" placeholder="380015" inputMode="numeric" maxLength={6} error={errors.pincode?.message} {...register('pincode', rules.pincode)} />
+                        <FormField label="City" icon="bi-geo-alt" placeholder="Ahmedabad" error={errors.city?.message} field={register('city', rules.city)} />
+                        <FormField label="PIN code" icon="bi-mailbox" placeholder="380015" inputMode="numeric" maxLength={6} error={errors.pincode?.message} field={register('pincode', rules.pincode)} />
                       </div>
                     </fieldset>
                     <div className="auth-grid-2">
-                      <FormField label="Contact number" icon="bi-telephone" placeholder="+91 98765 43210" inputMode="tel" error={errors.phone?.message} {...register('phone', rules.phone)} />
-                      <FormField label="GST number" icon="bi-receipt" placeholder="Optional" hint="Leave blank if not registered." error={errors.gst_number?.message} {...register('gst_number', rules.gstNumber)} />
+                      <FormField label="Contact number" icon="bi-telephone" placeholder="+91 98765 43210" inputMode="tel" error={errors.phone?.message} field={register('phone', rules.phone)} />
+                      <FormField label="GST number" icon="bi-receipt" placeholder="Optional" hint="Leave blank if not registered." error={errors.gst_number?.message} field={register('gst_number', rules.gstNumber)} />
                     </div>
                   </>
                 )}
@@ -110,10 +110,10 @@ export default function BusinessSetupPage() {
                 {step === 1 && (
                   <>
                     <div className="auth-grid-2">
-                      <SelectField label="Currency" options={[{ value: 'INR', label: '₹ Indian Rupee' }]} {...register('currency')} />
-                      <FormField label="Low stock threshold" type="number" min="1" icon="bi-box-seam" hint="Flag a product below this count." {...register('low_stock_threshold')} />
+                      <SelectField label="Currency" options={[{ value: 'INR', label: '₹ Indian Rupee' }]} field={register('currency')} />
+                      <FormField label="Low stock threshold" type="number" min="1" icon="bi-box-seam" hint="Flag a product below this count." field={register('low_stock_threshold')} />
                     </div>
-                    <FormField label="Near-expiry window (days)" type="number" min="1" icon="bi-clock-history" hint="How far ahead expiry risk should surface." {...register('expiry_window')} />
+                    <FormField label="Near-expiry window (days)" type="number" min="1" icon="bi-clock-history" hint="How far ahead expiry risk should surface." field={register('expiry_window')} />
                     <fieldset className="auth-fieldset">
                       <legend>What should reach you</legend>
                       <label className="auth-checkbox auth-checkbox-block">

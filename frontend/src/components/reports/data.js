@@ -13,17 +13,15 @@ export const SUMMARY_METRICS = [
 
 export const ASSESSMENT = 'Your business is performing above average. Focus on inventory optimization and supplier consistency to maximize next month’s growth.';
 
+// The three windows the reports API actually aggregates. Quarter, year and
+// custom ranges are not offered because no endpoint produces them.
 export const DATE_RANGES = [
-  { id: 'month', label: 'This month' },
-  { id: 'last', label: 'Last month' },
-  { id: 'quarter', label: 'This quarter' },
-  { id: 'year', label: 'This year' },
-  { id: 'custom', label: 'Custom' },
+  { id: 'daily', label: 'Today' },
+  { id: 'weekly', label: 'Last 7 days' },
+  { id: 'monthly', label: 'Last 30 days' },
 ];
 
 export const FORMATS = [
-  { id: 'pdf', label: 'PDF', icon: 'bi-filetype-pdf', note: 'Formatted for printing and sharing' },
-  { id: 'excel', label: 'Excel', icon: 'bi-filetype-xlsx', note: 'Editable workbook with one sheet per section' },
   { id: 'csv', label: 'CSV', icon: 'bi-filetype-csv', note: 'Raw rows for your own analysis' },
 ];
 

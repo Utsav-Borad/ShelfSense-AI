@@ -3,8 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
 import useCountUp from '../../hooks/useCountUp';
 import {
-  COPILOT_HIGHLIGHTS, ESTIMATED_IMPROVEMENT, OPPORTUNITY_SCORE,
-  PRIORITY_META, getRecommendation, greetingFor,
+  PRIORITY_META, greetingFor,
 } from './data';
 
 const EASE = [.16, 1, .3, 1];
@@ -15,15 +14,15 @@ const RADIUS = 68;
 // the day, and offers to walk you through it.
 //
 // Stages: 0 avatar · 1 thinking · 2..4 highlights · 5 score · 6 button
-export default function BusinessCopilot({ onStartPlan, planStarted, completedCount, total }) {
+export default function BusinessCopilot({ onStartPlan, planStarted, completedCount, total, summary }) {
   const { user } = useAuth();
   const [stage, setStage] = useState(0);
 
-  const highlights = COPILOT_HIGHLIGHTS.map(getRecommendation);
+  const highlights = summary.highlights;
   const finished = stage >= 6;
 
-  const score = useCountUp(OPPORTUNITY_SCORE, { duration: 1600, active: stage >= 5, delay: 200 });
-  const improvement = useCountUp(ESTIMATED_IMPROVEMENT, { duration: 1800, active: stage >= 5, delay: 320 });
+  const score = useCountUp(summary.score, { duration: 1600, active: stage >= 5, delay: 200 });
+  const improvement = useCountUp(summary.improvement, { duration: 1800, active: stage >= 5, delay: 320 });
 
   useEffect(() => {
     if (stage >= 6) return undefined;
@@ -109,7 +108,7 @@ export default function BusinessCopilot({ onStartPlan, planStarted, completedCou
                   <b>₹{item.impactValue.toLocaleString('en-IN')}</b>
                   <em>{item.impactLabel}</em>
                 </span>
-                <span className="visually-hidden">Priority {meta.label}. Confidence {item.confidence} percent.</span>
+                <span className="visually-hidden">Priority {meta.label}.</span>
                 <span className="ai-copilot-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
               </motion.li>
             );
@@ -126,13 +125,13 @@ export default function BusinessCopilot({ onStartPlan, planStarted, completedCou
             transition={{ duration: .65, ease: EASE }}
           >
             <div className="ai-score-ring">
-              <svg viewBox="0 0 160 160" role="img" aria-label={`Today's opportunity score ${OPPORTUNITY_SCORE} out of 100`}>
+              <svg viewBox="0 0 160 160" role="img" aria-label={`Today's opportunity score ${summary.score} out of 100`}>
                 <circle className="ai-score-track" cx="80" cy="80" r={RADIUS} />
                 <motion.circle
                   className="ai-score-arc"
                   cx="80" cy="80" r={RADIUS}
                   initial={{ pathLength: 0 }}
-                  animate={{ pathLength: OPPORTUNITY_SCORE / 100 }}
+                  animate={{ pathLength: summary.score / 100 }}
                   transition={{ duration: 1.6, delay: .2, ease: EASE }}
                 />
               </svg>

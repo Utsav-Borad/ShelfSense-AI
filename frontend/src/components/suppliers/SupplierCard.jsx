@@ -5,13 +5,14 @@ import { STATUS_META } from './data';
 const EASE = [.16, 1, .3, 1];
 const RADIUS = 19;
 
-// Reliability drawn as a ring that fills while the number counts.
+// A 0-100 ring. Used for share of stock value, not a reliability score —
+// no delivery history exists to score reliability from.
 export function ReliabilityRing({ value, delay = 0, size = 'md' }) {
   const shown = useCountUp(value, { duration: 1200, delay: delay * 1000 });
   const tone = value >= 92 ? 'success' : value >= 82 ? 'olive' : value >= 70 ? 'warning' : 'danger';
 
   return (
-    <span className={`sp-ring is-${size} tone-${tone}`} aria-label={`Reliability score ${value} out of 100`}>
+    <span className={`sp-ring is-${size} tone-${tone}`} aria-label={`${value} out of 100`}>
       <svg viewBox="0 0 48 48" aria-hidden="true">
         <circle className="sp-ring-track" cx="24" cy="24" r={RADIUS} />
         <motion.circle
@@ -67,9 +68,9 @@ export default function SupplierCard({ supplier, index, highlighted, onOpen }) {
         <span className={`sp-avatar tone-${meta.tone}`}>{supplier.initials}</span>
         <div className="sp-card-title">
           <button type="button" onClick={() => onOpen(supplier)}>{supplier.name}</button>
-          <small>{supplier.code} · {supplier.orders} orders</small>
+          <small>{supplier.code} · {supplier.products} product(s)</small>
         </div>
-        <ReliabilityRing value={supplier.reliability} delay={delay + .25} />
+        <ReliabilityRing value={supplier.share} delay={delay + .25} />
       </header>
 
       <span className={`sp-status tone-${meta.tone}`}>
@@ -77,24 +78,19 @@ export default function SupplierCard({ supplier, index, highlighted, onOpen }) {
       </span>
 
       <div className="sp-bars">
-        <PerformanceBar label="On-time delivery" value={supplier.onTime} tone={supplier.onTime >= 90 ? 'success' : supplier.onTime >= 80 ? 'olive' : 'warning'} delay={delay + .3} />
-        <PerformanceBar label="Fill rate" value={supplier.fillRate} tone="olive" delay={delay + .38} />
+        <PerformanceBar label="Share of stock value" value={supplier.share} tone="olive" delay={delay + .3} />
       </div>
 
-      <ul className="sp-tags" aria-label="Product categories">
-        {supplier.categories.map((category) => <li key={category}>{category}</li>)}
-      </ul>
-
       <dl className="sp-card-stats">
-        <div><dt>Total purchases</dt><dd>₹{(supplier.purchases / 1000).toFixed(0)}k</dd></div>
-        <div><dt>Avg delivery</dt><dd>{supplier.avgDays}d</dd></div>
-        <div><dt>Last delivery</dt><dd>{supplier.lastDelivery}</dd></div>
+        <div><dt>Stock value</dt><dd>₹{Math.round(supplier.stockValue).toLocaleString('en-IN')}</dd></div>
+        <div><dt>Units held</dt><dd>{supplier.units.toLocaleString('en-IN')}</dd></div>
+        <div><dt>Products</dt><dd>{supplier.products}</dd></div>
       </dl>
 
-      {supplier.delayedRecent > 0 && (
+      {supplier.atRisk > 0 && (
         <p className="sp-flag">
           <i className="bi bi-exclamation-triangle" aria-hidden="true" />
-          {supplier.delayedRecent} delayed {supplier.delayedRecent === 1 ? 'delivery' : 'deliveries'} recently
+          {supplier.atRisk} product(s) from this supplier need attention
         </p>
       )}
     </motion.article>

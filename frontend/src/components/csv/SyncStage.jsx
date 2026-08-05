@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import SyncTimeline from './SyncTimeline';
+import { uploadCsv } from '../../services/uploadService';
 import { REPORT_TYPES, SYNC_STAGES, TOTAL_SYNC_MS, deriveSync, statusMessage } from './constants';
 
 const EASE = [.16, 1, .3, 1];
@@ -8,8 +9,33 @@ const EASE = [.16, 1, .3, 1];
 // The whole run is driven by one elapsed clock, ticked on animation frames.
 // Every part of the view derives from it, so nothing can drift out of step and
 // progress moves continuously instead of jumping between stages.
-export default function SyncStage({ files, onComplete }) {
+export default function SyncStage({ files, onComplete, onResults }) {
   const [elapsed, setElapsed] = useState(0);
+  const [failed, setFailed] = useState('');
+
+  // The real work: each selected file is posted to its own upload endpoint.
+  // The animation above runs on its own clock; this decides the outcome.
+  useEffect(() => {
+    let active = true;
+
+    async function send() {
+      const results = [];
+      try {
+        for (const report of REPORT_TYPES) {
+          const entry = files[report.id];
+          if (!entry || !entry.file) continue;
+          const response = await uploadCsv(report.id, entry.file);
+          results.push({ id: report.id, name: entry.name, ...response.data });
+        }
+        if (active) onResults?.(results);
+      } catch (error) {
+        if (active) setFailed(error.detail || 'That file could not be imported.');
+      }
+    }
+
+    send();
+    return () => { active = false; };
+  }, [files, onResults]);
 
   useEffect(() => {
     let frame;
@@ -33,10 +59,10 @@ export default function SyncStage({ files, onComplete }) {
 
   // Hand off once the run is over, after the final stage has had a moment.
   useEffect(() => {
-    if (!finished) return undefined;
+    if (!finished || failed) return undefined;
     const timer = setTimeout(onComplete, 1500);
     return () => clearTimeout(timer);
-  }, [finished, onComplete]);
+  }, [finished, failed, onComplete]);
 
   return (
     <div className="csv-stage csv-sync">
@@ -80,10 +106,17 @@ export default function SyncStage({ files, onComplete }) {
 
       <SyncTimeline activeIndex={index} phase={phase} stageProgress={stageProgress} />
 
-      <p className="csv-note">
-        <i className="bi bi-shield-check" aria-hidden="true" />
-        Analytics and AI only run once the database transaction has committed. Nothing is half-written.
-      </p>
+      {failed ? (
+        <p className="csv-note is-error" role="alert">
+          <i className="bi bi-exclamation-triangle" aria-hidden="true" />
+          {failed}
+        </p>
+      ) : (
+        <p className="csv-note">
+          <i className="bi bi-shield-check" aria-hidden="true" />
+          Analytics and AI only run once the database transaction has committed. Nothing is half-written.
+        </p>
+      )}
     </div>
   );
 }

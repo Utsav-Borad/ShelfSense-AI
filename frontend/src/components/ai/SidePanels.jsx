@@ -1,13 +1,12 @@
 import { motion } from 'framer-motion';
 import EmptyState from '../ui/EmptyState';
-import { HISTORY, OPPORTUNITIES, RISKS, getRecommendation } from './data';
 
 const EASE = [.16, 1, .3, 1];
 
 // The three supporting panels. Kept in one file because they share a shape and
 // none of them is large enough to earn its own.
 
-export function Opportunities() {
+export function Opportunities({ opportunities = [] }) {
   return (
     <section className="ai-panel" aria-label="Business opportunities">
       <header className="ai-panel-head">
@@ -17,7 +16,7 @@ export function Opportunities() {
         </div>
       </header>
       <ul className="ai-opportunities">
-        {OPPORTUNITIES.map((item, index) => (
+        {opportunities.map((item, index) => (
           <motion.li
             key={item.id}
             initial={{ opacity: 0, y: 14 }}
@@ -32,7 +31,6 @@ export function Opportunities() {
             </div>
             <span className="ai-opp-value">
               <b>+₹{item.value.toLocaleString('en-IN')}</b>
-              <em>{item.confidence}% confidence</em>
             </span>
           </motion.li>
         ))}
@@ -41,7 +39,7 @@ export function Opportunities() {
   );
 }
 
-export function RiskAlerts() {
+export function RiskAlerts({ risks = [] }) {
   return (
     <section className="ai-panel" aria-label="Risk alerts">
       <header className="ai-panel-head">
@@ -51,7 +49,7 @@ export function RiskAlerts() {
         </div>
       </header>
       <ul className="ai-risks">
-        {RISKS.map((risk, index) => (
+        {risks.map((risk, index) => (
           <motion.li
             key={risk.id}
             className={`tone-${risk.tone}`}
@@ -73,8 +71,8 @@ export function RiskAlerts() {
   );
 }
 
-export function ActionQueue({ accepted, onOpen }) {
-  const items = accepted.map(getRecommendation).filter(Boolean);
+export function ActionQueue({ accepted, onOpen, decisions = [] }) {
+  const items = accepted.map((id) => decisions.find((item) => item.id === id)).filter(Boolean);
 
   return (
     <section className="ai-panel" aria-label="Action queue">
@@ -110,7 +108,7 @@ export function ActionQueue({ accepted, onOpen }) {
   );
 }
 
-export function DecisionHistory() {
+export function DecisionHistory({ history = [] }) {
   return (
     <section className="ai-panel" aria-label="Decision history">
       <header className="ai-panel-head">
@@ -119,8 +117,17 @@ export function DecisionHistory() {
           <h3>What you decided, and what followed</h3>
         </div>
       </header>
+      {/* Accepting or dismissing a decision is not persisted anywhere — the
+          backend stores no decision log — so this fills in as you work. */}
+      {history.length === 0 && (
+        <EmptyState
+          icon="bi-clock-history"
+          title="No decisions recorded yet"
+          description="Accept or dismiss a recommendation and it will appear here for this session."
+        />
+      )}
       <ol className="ai-history">
-        {HISTORY.map((entry, index) => (
+        {history.map((entry, index) => (
           <motion.li
             key={entry.id}
             initial={{ opacity: 0, y: 12 }}

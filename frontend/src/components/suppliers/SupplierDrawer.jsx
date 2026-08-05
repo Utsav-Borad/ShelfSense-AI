@@ -38,7 +38,7 @@ export default function SupplierDrawer({ supplier, onClose }) {
                   <i className={`bi ${meta.icon}`} aria-hidden="true" />{meta.label}
                 </span>
                 <h3>{supplier.name}</h3>
-                <p>{supplier.code} · {supplier.categories.join(', ')}</p>
+                <p>{supplier.code} · {supplier.products} product(s)</p>
               </div>
               <button type="button" className="sp-drawer-close" onClick={onClose} aria-label="Close profile">
                 <i className="bi bi-x-lg" aria-hidden="true" />
@@ -47,28 +47,26 @@ export default function SupplierDrawer({ supplier, onClose }) {
 
             <div className="sp-drawer-body">
               <div className="sp-drawer-score">
-                <ReliabilityRing value={supplier.reliability} delay={.2} size="lg" />
+                <ReliabilityRing value={supplier.share} delay={.2} size="lg" />
                 <div>
                   <strong>Reliability score</strong>
-                  <p>Weighted from on-time delivery, fill rate and price variance across {supplier.orders} purchase records.</p>
+                  <p>Share of the capital held across all your suppliers. Delivery performance is not scored — no purchase orders are recorded.</p>
                 </div>
               </div>
 
               <section className="sp-drawer-block">
                 <h4>Delivery performance</h4>
-                <PerformanceBar label="On-time delivery" value={supplier.onTime} tone={supplier.onTime >= 90 ? 'success' : supplier.onTime >= 80 ? 'olive' : 'warning'} delay={.25} />
-                <PerformanceBar label="Fill rate" value={supplier.fillRate} tone="olive" delay={.32} />
-                <PerformanceBar label="Price stability" value={Math.max(0, 100 - supplier.priceVariance * 10)} tone={supplier.priceVariance <= 3 ? 'success' : 'warning'} delay={.39} />
+                <PerformanceBar label="Share of stock value" value={supplier.share} tone="olive" delay={.25} />
               </section>
 
               <dl className="sp-drawer-rows">
                 {[
-                  ['Total purchases', `₹${supplier.purchases.toLocaleString('en-IN')}`],
-                  ['Purchase orders', `${supplier.orders}`],
-                  ['Average delivery time', `${supplier.avgDays} days`],
-                  ['Last delivery', supplier.lastDelivery],
-                  ['Price variance', `${supplier.priceVariance}%`],
-                  ['Recent delays', `${supplier.delayedRecent}`],
+                  ['Products supplied', `${supplier.products}`],
+                  ['Units held', supplier.units.toLocaleString('en-IN')],
+                  ['Stock value', `₹${Math.round(supplier.stockValue).toLocaleString('en-IN')}`],
+                  ['Products needing attention', `${supplier.atRisk}`],
+                  ['Phone', supplier.phone],
+                  ['Email', supplier.email],
                 ].map(([label, value]) => (
                   <div key={label}><dt>{label}</dt><dd>{value}</dd></div>
                 ))}

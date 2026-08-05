@@ -1,11 +1,12 @@
 import { motion } from 'framer-motion';
-import { CATEGORIES, SORTS, STATUS_META } from './data';
+import { SORTS, STATUS_META } from './data';
 
 const EASE = [.16, 1, .3, 1];
 
 // Category and status filters are chips rather than dropdowns: on a page about
 // spotting outliers, the options should be visible at a glance.
 export default function ProductToolbar({
+  categories = [],
   query, onQuery, category, onCategory, status, onStatus,
   sort, onSort, view, onView, total, shown, onReset, filtered,
 }) {
@@ -58,7 +59,7 @@ export default function ProductToolbar({
           <button type="button" className={category === 'all' ? 'is-active' : ''} onClick={() => onCategory('all')} aria-pressed={category === 'all'}>
             All categories
           </button>
-          {CATEGORIES.map((value) => (
+          {categories.map((value) => (
             <button key={value} type="button" className={category === value ? 'is-active' : ''} onClick={() => onCategory(value)} aria-pressed={category === value}>
               {value}
             </button>

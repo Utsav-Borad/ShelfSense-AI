@@ -1,9 +1,10 @@
 from rest_framework import status
 from rest_framework.exceptions import NotFound
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from authentication.permissions import IsAdminRole
 from business.models import Business
 
 from .models import Product
@@ -19,7 +20,21 @@ def _get_owner_business_or_404(owner: object) -> Business:
         raise NotFound("Business not found.") from error
 
 
-class ProductListView(APIView):
+class AdminWriteMixin:
+    """Anyone signed in may read; only administrators may write.
+
+    Products are meant to arrive through CSV synchronization, and the API
+    documentation marks manual product entry as admin-only. Reads stay open so
+    the product pages keep working for every account.
+    """
+
+    def get_permissions(self):
+        if self.request.method in SAFE_METHODS:
+            return [IsAuthenticated()]
+        return [IsAdminRole()]
+
+
+class ProductListView(AdminWriteMixin, APIView):
     """Create a product and list products for the authenticated user's business."""
 
     permission_classes = (IsAuthenticated,)
@@ -47,7 +62,7 @@ class ProductListView(APIView):
         return Response(payload, status=status.HTTP_201_CREATED)
 
 
-class ProductDetailView(APIView):
+class ProductDetailView(AdminWriteMixin, APIView):
     """Retrieve, update, or delete a product for the authenticated user's business."""
 
     permission_classes = (IsAuthenticated,)

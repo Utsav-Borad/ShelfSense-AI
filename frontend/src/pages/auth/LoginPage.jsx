@@ -25,7 +25,9 @@ export default function LoginPage() {
       const response = await loginRequest({ email: values.email.trim().toLowerCase(), password: values.password });
       const { user, access, refresh } = response.data;
       setSuccess(true);
-      login(user, { access, refresh });
+      // Awaited so the business is known before we navigate — otherwise the
+      // route guard would send an existing owner to /business-setup.
+      await login(user, { access, refresh });
       setTimeout(() => navigate('/dashboard', { replace: true }), 550);
     } catch (error) {
       // Field-level errors from the API map onto the form; anything else
@@ -54,14 +56,14 @@ export default function LoginPage() {
             autoComplete="email"
             autoFocus
             error={errors.email?.message}
-            {...register('email', rules.email)}
+            field={register('email', rules.email)}
           />
 
           <PasswordField
             placeholder="Enter your password"
             autoComplete="current-password"
             error={errors.password?.message}
-            {...register('password', rules.loginPassword)}
+            field={register('password', rules.loginPassword)}
           />
 
           <div className="auth-row-between">
@@ -78,11 +80,6 @@ export default function LoginPage() {
         </form>
 
         <p className="auth-switch">New to ShelfSense? <Link to="/register">Create an account</Link></p>
-
-        <p className="auth-demo-note">
-          <i className="bi bi-info-circle" aria-hidden="true" />
-          Placeholder mode — any email and password signs you in. Use <code>wrongpassword</code> to see the error state.
-        </p>
       </motion.div>
     </AuthLayout>
   );

@@ -2,9 +2,17 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import EmptyState from '../../components/ui/EmptyState';
 import {
-  GROUP_LABELS, MorningBrief, NOTIFICATIONS, NotificationDrawer,
+  GROUP_LABELS, MorningBrief, NotificationDrawer,
   NotificationItem, NotificationToolbar,
 } from '../../components/notifications';
+import {
+  toBriefLines, toNotifications,
+} from '../../components/notifications/fromApi';
+import ErrorState from '../../components/ui/ErrorState';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import { getRecommendations } from '../../services/aiService';
+import { getDashboard } from '../../services/analyticsService';
+import { getNotifications } from '../../services/notificationsService';
 import '../../styles/notifications.css';
 
 const EASE = [.16, 1, .3, 1];
@@ -21,7 +29,9 @@ function TimelineSkeleton() {
 export default function NotificationsPage() {
   const [ready, setReady] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [items, setItems] = useState(NOTIFICATIONS);
+  const [items, setItems] = useState([]);
+  const [brief, setBrief] = useState([]);
+  const [failed, setFailed] = useState('');
 
   const [tab, setTab] = useState('critical');
   const [query, setQuery] = useState('');
@@ -31,11 +41,30 @@ export default function NotificationsPage() {
   const [highlighted, setHighlighted] = useState(null);
   const [opened, setOpened] = useState(null);
 
+  // Alerts come from the notification engine, with the recommendation output
+  // supplying the stock evidence behind each one.
   useEffect(() => {
-    if (!ready) return undefined;
-    const timer = setTimeout(() => setLoading(false), 750);
-    return () => clearTimeout(timer);
-  }, [ready]);
+    let active = true;
+
+    async function load() {
+      try {
+        const [alerts, ai, dashboard] = await Promise.all([
+          getNotifications(), getRecommendations(), getDashboard(),
+        ]);
+        if (!active) return;
+        const list = toNotifications(alerts.data.notifications, ai.data.recommendations);
+        setItems(list);
+        setBrief(toBriefLines(dashboard.data, list));
+      } catch (failure) {
+        if (active) setFailed(failure.detail || 'We could not load your notifications.');
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    load();
+    return () => { active = false; };
+  }, []);
 
   // The jump highlight fades on its own so it reads as a flash, not a state.
   useEffect(() => {
@@ -99,9 +128,21 @@ export default function NotificationsPage() {
     }, 120);
   }
 
+  if (loading) {
+    return <div className="nt"><LoadingSpinner label="Reading your alerts" /></div>;
+  }
+
+  if (!loading && failed) {
+    return (
+      <div className="nt">
+        <ErrorState title="We could not load your notifications" description={failed} />
+      </div>
+    );
+  }
+
   return (
     <div className="nt">
-      <MorningBrief unreadCount={unreadCount} onJump={jumpTo} onReady={() => setReady(true)} />
+      <MorningBrief lines={brief} unreadCount={unreadCount} onJump={jumpTo} onReady={() => setReady(true)} />
 
       <AnimatePresence>
         {ready && (

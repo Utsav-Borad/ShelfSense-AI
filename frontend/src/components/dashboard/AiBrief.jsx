@@ -1,22 +1,21 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { BRIEF_LINES } from './data';
 
 const EASE = [.16, 1, .3, 1];
 
 // Today's brief, revealed a line at a time so it reads as the system working
 // something out rather than a paragraph that was always there.
-export default function AiBrief() {
+export default function AiBrief({ lines = [] }) {
   const [shown, setShown] = useState(0);
 
   useEffect(() => {
-    if (shown >= BRIEF_LINES.length) return undefined;
+    if (shown >= lines.length) return undefined;
     const timer = setTimeout(() => setShown(shown + 1), shown === 0 ? 900 : 780);
     return () => clearTimeout(timer);
   }, [shown]);
 
-  const thinking = shown < BRIEF_LINES.length;
+  const thinking = shown < lines.length;
 
   return (
     <motion.section
@@ -42,13 +41,13 @@ export default function AiBrief() {
 
       <ol className="dash-brief-lines" aria-live="polite">
         <AnimatePresence initial={false}>
-          {BRIEF_LINES.slice(0, shown).map((line, index) => (
+          {lines.slice(0, shown).map((line, index) => (
             <motion.li
               key={line}
               initial={{ opacity: 0, y: 10, filter: 'blur(4px)' }}
               animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
               transition={{ duration: .55, ease: EASE }}
-              className={index === BRIEF_LINES.length - 1 ? 'is-decision' : ''}
+              className={index === lines.length - 1 ? 'is-decision' : ''}
             >
               <span className="dash-brief-bullet" aria-hidden="true" />
               {line}

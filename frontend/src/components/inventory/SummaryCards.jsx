@@ -37,7 +37,8 @@ export default function SummaryCards({ products, intelligence, statusFilter, onS
     { filter: 'healthy', label: STATUS_META.healthy.label, value: count('healthy'), icon: STATUS_META.healthy.icon, tone: 'success', note: 'no action needed' },
     { filter: 'low', label: STATUS_META.low.label, value: count('low'), icon: STATUS_META.low.icon, tone: 'warning', note: 'below minimum' },
     { filter: 'expiring', label: STATUS_META.expiring.label, value: count('expiring'), icon: STATUS_META.expiring.icon, tone: 'danger', note: 'within 30 days' },
-    { filter: 'dead', label: STATUS_META.dead.label, value: count('dead'), icon: STATUS_META.dead.icon, tone: 'muted', note: 'no sale in 60 days' },
+    { filter: 'overstock', label: STATUS_META.overstock.label, value: count('overstock'), icon: STATUS_META.overstock.icon, tone: 'sage', note: 'above predicted demand' },
+    { filter: 'dead', label: STATUS_META.dead.label, value: count('dead'), icon: STATUS_META.dead.icon, tone: 'muted', note: 'overstocked, no demand' },
     { filter: 'all', label: 'Inventory value', value: Math.round(intelligence.totalValue), prefix: '₹', icon: 'bi-cash-stack', tone: 'olive', note: 'capital on the shelf' },
   ];
 

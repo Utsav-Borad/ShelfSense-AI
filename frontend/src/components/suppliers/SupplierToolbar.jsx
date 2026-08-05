@@ -1,14 +1,8 @@
 import { motion } from 'framer-motion';
-import { CATEGORIES, SORTS, STATUS_META } from './data';
+import { SORTS, STATUS_META } from './data';
 
 const EASE = [.16, 1, .3, 1];
 
-const DELIVERY_OPTIONS = [
-  { value: 'all', label: 'Any delivery time' },
-  { value: '2', label: 'Within 2 days' },
-  { value: '3', label: 'Within 3 days' },
-  { value: '5', label: 'Within 5 days' },
-];
 
 const DELAY_OPTIONS = [
   { value: 'all', label: 'Any delivery record' },
@@ -18,7 +12,6 @@ const DELAY_OPTIONS = [
 
 export default function SupplierToolbar({
   query, onQuery, category, onCategory, status, onStatus,
-  delivery, onDelivery, delays, onDelays,
   sort, onSort, view, onView, total, shown, filtered, onReset,
 }) {
   return (
@@ -66,30 +59,11 @@ export default function SupplierToolbar({
       </div>
 
       <div className="sp-advanced">
-        <label className="sp-select is-compact">
-          <span className="visually-hidden">Filter by category</span>
-          <select value={category} onChange={(event) => onCategory(event.target.value)}>
-            <option value="all">All categories</option>
-            {CATEGORIES.map((value) => <option key={value} value={value}>{value}</option>)}
-          </select>
-          <i className="bi bi-chevron-down" aria-hidden="true" />
-        </label>
+        
 
-        <label className="sp-select is-compact">
-          <span className="visually-hidden">Filter by average delivery time</span>
-          <select value={delivery} onChange={(event) => onDelivery(event.target.value)}>
-            {DELIVERY_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-          </select>
-          <i className="bi bi-chevron-down" aria-hidden="true" />
-        </label>
+        
 
-        <label className="sp-select is-compact">
-          <span className="visually-hidden">Filter by delivery record</span>
-          <select value={delays} onChange={(event) => onDelays(event.target.value)}>
-            {DELAY_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-          </select>
-          <i className="bi bi-chevron-down" aria-hidden="true" />
-        </label>
+        
       </div>
 
       <div className="sp-chips" role="group" aria-label="Filter by status">

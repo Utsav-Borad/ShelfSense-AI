@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import ConfidenceRing from './ConfidenceRing';
 import { PRIORITY_META } from './data';
 
 const EASE = [.16, 1, .3, 1];
@@ -36,7 +35,6 @@ export default function RecommendationCard({
         </motion.span>
 
         <span className="ai-rec-category">{recommendation.category}</span>
-        <ConfidenceRing value={recommendation.confidence} delay={.35 + index * .06} />
       </header>
 
       <h3>{recommendation.title}</h3>

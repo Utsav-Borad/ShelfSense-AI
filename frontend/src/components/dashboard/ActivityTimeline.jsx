@@ -1,12 +1,14 @@
 import { motion } from 'framer-motion';
 import EmptyState from '../ui/EmptyState';
-import { ACTIVITY } from './data';
 
 const EASE = [.16, 1, .3, 1];
 
 // Builds top to bottom: the rail draws down while each entry lands under it.
-export default function ActivityTimeline() {
-  const events = ACTIVITY;
+//
+// This shows live alerts from the notification engine rather than an activity
+// log — the backend keeps no audit trail of past events, so "what happened"
+// cannot be answered, but "what needs attention" can.
+export default function ActivityTimeline({ events = [] }) {
 
   return (
     <motion.section
@@ -18,13 +20,13 @@ export default function ActivityTimeline() {
       <span className="dash-sweep" aria-hidden="true" />
       <header className="dash-panel-head">
         <div>
-          <p className="dash-eyebrow">Recent activity</p>
-          <h3>What happened today</h3>
+          <p className="dash-eyebrow">Alerts</p>
+          <h3>What needs attention</h3>
         </div>
       </header>
 
       {events.length === 0 ? (
-        <EmptyState icon="bi-activity" title="Nothing yet today" description="Synchronizations and alerts will appear here." />
+        <EmptyState icon="bi-check2-circle" title="Nothing needs attention" description="Every product is within its stock and expiry limits." />
       ) : (
         <ol className="dash-timeline">
           <motion.span
@@ -48,7 +50,7 @@ export default function ActivityTimeline() {
                 <strong>{event.title}</strong>
                 <small>{event.detail}</small>
               </div>
-              <time>{event.time}</time>
+              <span className="dash-timeline-tag">{event.time}</span>
             </motion.li>
           ))}
         </ol>

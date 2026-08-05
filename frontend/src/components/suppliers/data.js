@@ -78,10 +78,10 @@ export function supplierIntelligence(suppliers) {
 }
 
 export const SORTS = [
-  { value: 'reliability', label: 'Reliability' },
-  { value: 'onTime', label: 'On-time rate' },
-  { value: 'purchases', label: 'Total purchases' },
-  { value: 'avgDays', label: 'Delivery time' },
+  { value: 'share', label: 'Share of stock value' },
+  { value: 'stockValue', label: 'Stock value' },
+  { value: 'products', label: 'Products supplied' },
+  { value: 'atRisk', label: 'Products needing attention' },
   { value: 'name', label: 'Name' },
 ];
 

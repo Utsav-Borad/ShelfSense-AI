@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import useCountUp from '../../hooks/useCountUp';
-import { ASSESSMENT, HEALTH, SUMMARY_METRICS } from './data';
 
 const EASE = [.16, 1, .3, 1];
 const RADIUS = 70;
@@ -28,7 +27,7 @@ function Metric({ metric, index }) {
 
 // Types the assessment out two characters at a time — quick enough not to test
 // anyone's patience, slow enough to read as written rather than pasted.
-function TypedAssessment({ active }) {
+function TypedAssessment({ active, text: ASSESSMENT }) {
   const [count, setCount] = useState(0);
   const done = count >= ASSESSMENT.length;
 
@@ -57,10 +56,10 @@ function TypedAssessment({ active }) {
   );
 }
 
-export default function ExecutiveSummary({ onReady }) {
+export default function ExecutiveSummary({ onReady, health, metrics = [], assessment = '' }) {
   const [shown, setShown] = useState(0);
-  const score = useCountUp(HEALTH.score, { duration: 1700, delay: 300 });
-  const revealing = shown < SUMMARY_METRICS.length;
+  const score = useCountUp(health.score, { duration: 1700, delay: 300 });
+  const revealing = shown < metrics.length;
 
   useEffect(() => {
     if (!revealing) return undefined;
@@ -87,13 +86,13 @@ export default function ExecutiveSummary({ onReady }) {
 
       <div className="rp-summary-score">
         <div className="rp-gauge">
-          <svg viewBox="0 0 164 164" role="img" aria-label={`Business health ${HEALTH.score} out of 100`}>
+          <svg viewBox="0 0 164 164" role="img" aria-label={`Business health ${health.score} out of 100`}>
             <circle className="rp-gauge-track" cx="82" cy="82" r={RADIUS} />
             <motion.circle
               className="rp-gauge-arc"
               cx="82" cy="82" r={RADIUS}
               initial={{ pathLength: 0 }}
-              animate={{ pathLength: HEALTH.score / 100 }}
+              animate={{ pathLength: health.score / 100 }}
               transition={{ duration: 1.7, delay: .3, ease: EASE }}
             />
           </svg>
@@ -102,7 +101,7 @@ export default function ExecutiveSummary({ onReady }) {
             <span>/100</span>
           </div>
         </div>
-        <p className="rp-verdict"><span className="rp-dot" aria-hidden="true" />Business health: <b>{HEALTH.status}</b></p>
+        <p className="rp-verdict"><span className="rp-dot" aria-hidden="true" />Business health: <b>{health.status}</b></p>
       </div>
 
       <div className="rp-summary-body">
@@ -116,13 +115,13 @@ export default function ExecutiveSummary({ onReady }) {
 
         <ul className="rp-metrics" aria-live="polite">
           <AnimatePresence initial={false}>
-            {SUMMARY_METRICS.slice(0, shown).map((metric, index) => (
+            {metrics.slice(0, shown).map((metric, index) => (
               <Metric key={metric.id} metric={metric} index={index} />
             ))}
           </AnimatePresence>
         </ul>
 
-        <TypedAssessment active={!revealing} />
+        <TypedAssessment text={assessment} active={!revealing} />
       </div>
     </motion.section>
   );

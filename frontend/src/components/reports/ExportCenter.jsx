@@ -1,12 +1,14 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { FORMATS, REPORTS } from './data';
+import { FORMATS } from './data';
 
 const EASE = [.16, 1, .3, 1];
 
 // Export placeholders. The button runs a short progress animation and then
 // says plainly that nothing was written — better than a silent no-op.
-export default function ExportCenter({ selected, range, onExport, job }) {
-  const target = selected || REPORTS[REPORTS.length - 1];
+export default function ExportCenter({ selected, range, onExport, job, reports = [] }) {
+  const target = selected || reports[0];
+  // Nothing to export until the reports have loaded.
+  if (!target) return null;
 
   return (
     <section className="rp-export" aria-label="Export center">
@@ -62,7 +64,7 @@ export default function ExportCenter({ selected, range, onExport, job }) {
                   <i className="bi bi-info-circle" aria-hidden="true" />
                   <span>
                     <strong>{job.report} · {job.format}</strong>
-                    Placeholder mode — nothing was written to disk. Export arrives with the reports endpoint.
+                    Only the Sales Report can be exported — it is the one the API streams as CSV.
                   </span>
                 </>
               ) : (

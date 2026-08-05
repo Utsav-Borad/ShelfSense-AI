@@ -82,7 +82,7 @@ export default function ResetPasswordPage() {
                 autoComplete="new-password"
                 autoFocus
                 error={errors.password?.message}
-                {...register('password', rules.password)}
+                field={register('password', rules.password)}
               />
               <PasswordStrength value={password} />
               <PasswordField
@@ -90,15 +90,11 @@ export default function ResetPasswordPage() {
                 placeholder="Re-enter your new password"
                 autoComplete="new-password"
                 error={errors.password_confirmation?.message}
-                {...register('password_confirmation', rules.confirmPassword(() => getValues('password')))}
+                field={register('password_confirmation', rules.confirmPassword(() => getValues('password')))}
               />
               <SubmitButton loading={isSubmitting}>Update password <i className="bi bi-arrow-right" aria-hidden="true" /></SubmitButton>
             </form>
 
-            <p className="auth-demo-note">
-              <i className="bi bi-info-circle" aria-hidden="true" />
-              Placeholder mode — use <code>?token=expired</code> in the URL to see the failure state.
-            </p>
           </motion.div>
         )}
       </AnimatePresence>

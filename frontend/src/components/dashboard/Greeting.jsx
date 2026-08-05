@@ -10,7 +10,10 @@ function partOfDay(hour) {
 }
 
 // Fades in first, before anything else on the page.
-export default function Greeting() {
+//
+// There is no synchronization log in the backend, so the badge reports what can
+// actually be known — how many products the model was able to analyse.
+export default function Greeting({ analysed = null }) {
   const { user, business } = useAuth();
   const now = new Date();
   const firstName = user?.full_name ? user.full_name.split(' ')[0] : null;
@@ -27,18 +30,20 @@ export default function Greeting() {
         <p className="dash-eyebrow">Your decision center</p>
         <h1>{partOfDay(now.getHours())}{firstName ? `, ${firstName}` : ''}.</h1>
         <p className="dash-greeting-sub">
-          {business?.shop_name ? `${business.shop_name} · ` : ''}{today} · last synchronized at 09:12
+          {business?.shop_name ? `${business.shop_name} · ` : ''}{today}
         </p>
       </div>
-      <motion.span
-        className="dash-sync-badge"
-        initial={{ opacity: 0, scale: .94 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: .6, delay: .25, ease: EASE }}
-      >
-        <i className="bi bi-check-circle" aria-hidden="true" />
-        Up to date
-      </motion.span>
+      {analysed !== null && (
+        <motion.span
+          className="dash-sync-badge"
+          initial={{ opacity: 0, scale: .94 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: .6, delay: .25, ease: EASE }}
+        >
+          <i className={`bi ${analysed > 0 ? 'bi-check-circle' : 'bi-cloud-arrow-up'}`} aria-hidden="true" />
+          {analysed > 0 ? `${analysed} products analysed` : 'No data yet — upload a CSV'}
+        </motion.span>
+      )}
     </motion.header>
   );
 }

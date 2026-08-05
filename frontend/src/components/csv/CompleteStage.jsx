@@ -5,8 +5,12 @@ import { REPORT_TYPES } from './constants';
 const EASE = [.16, 1, .3, 1];
 
 // A tasteful finish: a drawn checkmark inside a soft warm glow. No confetti.
-export default function CompleteStage({ files, onAnother }) {
-  const rows = REPORT_TYPES.reduce((sum, report) => sum + (files[report.id] ? 137 : 0), 0);
+export default function CompleteStage({ files, results = [], onAnother }) {
+  // Real counts from the API rather than an assumed row count per file.
+  const rows = results.reduce((sum, result) => sum + (result.rows_read || 0), 0);
+  const updated = results.reduce((sum, result) => sum + (result.updated || 0), 0);
+  const created = results.reduce((sum, result) => sum + (result.created || 0), 0);
+  const skipped = results.reduce((sum, result) => sum + (result.skipped || 0), 0);
 
   return (
     <div className="csv-stage csv-complete">
@@ -39,10 +43,10 @@ export default function CompleteStage({ files, onAnother }) {
       </motion.div>
 
       <motion.dl className="csv-summary" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .6, delay: .48, ease: EASE }}>
-        <div><dt>Reports</dt><dd>{REPORT_TYPES.length}</dd></div>
-        <div><dt>Rows accepted</dt><dd>{rows}</dd></div>
-        <div><dt>Metrics refreshed</dt><dd>10</dd></div>
-        <div><dt>Models run</dt><dd>6</dd></div>
+        <div><dt>Files imported</dt><dd>{results.length}</dd></div>
+        <div><dt>Rows read</dt><dd>{rows.toLocaleString('en-IN')}</dd></div>
+        <div><dt>Records updated</dt><dd>{(created + updated).toLocaleString('en-IN')}</dd></div>
+        <div><dt>Rows skipped</dt><dd>{skipped.toLocaleString('en-IN')}</dd></div>
       </motion.dl>
 
       <motion.div className="csv-actions" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: .5, delay: .6 }}>

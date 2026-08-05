@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { CATEGORIES, STATUS_META, SUPPLIERS } from './data';
+import { STATUS_META } from './data';
 
 const EASE = [.16, 1, .3, 1];
 
@@ -20,7 +20,7 @@ const EXPIRY_OPTIONS = [
 
 // Slides open and closed rather than appearing, so the table below moves with
 // it instead of jumping.
-export default function FilterPanel({ open, filters, onChange, onReset, activeCount }) {
+export default function FilterPanel({ open, filters, onChange, onReset, activeCount, categories = [], suppliers = [] }) {
   const set = (key) => (event) => onChange({ ...filters, [key]: event.target.value });
 
   return (
@@ -38,7 +38,7 @@ export default function FilterPanel({ open, filters, onChange, onReset, activeCo
               <span>Category</span>
               <select value={filters.category} onChange={set('category')}>
                 <option value="all">All categories</option>
-                {CATEGORIES.map((category) => <option key={category} value={category}>{category}</option>)}
+                {categories.map((category) => <option key={category} value={category}>{category}</option>)}
               </select>
             </label>
 
@@ -46,7 +46,7 @@ export default function FilterPanel({ open, filters, onChange, onReset, activeCo
               <span>Supplier</span>
               <select value={filters.supplier} onChange={set('supplier')}>
                 <option value="all">All suppliers</option>
-                {SUPPLIERS.map((supplier) => <option key={supplier} value={supplier}>{supplier}</option>)}
+                {suppliers.map((supplier) => <option key={supplier} value={supplier}>{supplier}</option>)}
               </select>
             </label>
 

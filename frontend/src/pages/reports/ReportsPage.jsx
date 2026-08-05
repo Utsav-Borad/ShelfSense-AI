@@ -2,9 +2,19 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import EmptyState from '../../components/ui/EmptyState';
 import {
-  DATE_RANGES, ExecutiveSummary, ExportCenter, HISTORY, REPORTS,
+  DATE_RANGES, ExecutiveSummary, ExportCenter,
   ReportCard, ReportHistory, ReportPreview,
 } from '../../components/reports';
+import {
+  toAssessment, toHealth, toReports, toSummaryMetrics,
+} from '../../components/reports/fromApi';
+import ErrorState from '../../components/ui/ErrorState';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import { getRecommendations } from '../../services/aiService';
+import {
+  getDashboard, getInventoryAnalytics, getSupplierAnalytics,
+} from '../../services/analyticsService';
+import { exportReport, getReport } from '../../services/reportsService';
 import '../../styles/reports.css';
 
 const EASE = [.16, 1, .3, 1];
@@ -21,24 +31,43 @@ export default function ReportsPage() {
   const [ready, setReady] = useState(false);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
-  const [range, setRange] = useState('month');
+  const [range, setRange] = useState('monthly');
   const [selected, setSelected] = useState(null);
   const [job, setJob] = useState(null);
+  const [reports, setReports] = useState([]);
+  const [health, setHealth] = useState({ score: 0, status: '' });
+  const [metrics, setMetrics] = useState([]);
+  const [assessment, setAssessment] = useState('');
+  const [failed, setFailed] = useState('');
 
-  // Placeholder settle once the summary has finished.
+  // The reporting window the API is asked for. Re-runs when it changes.
   useEffect(() => {
-    if (!ready) return undefined;
-    const timer = setTimeout(() => setLoading(false), 750);
-    return () => clearTimeout(timer);
-  }, [ready]);
+    let active = true;
 
-  // Export runs a short progress bar, then reports honestly that it is a
-  // placeholder rather than pretending a file appeared.
-  useEffect(() => {
-    if (!job || job.done) return undefined;
-    const timer = setTimeout(() => setJob((current) => (current ? { ...current, done: true } : null)), 1700);
-    return () => clearTimeout(timer);
-  }, [job]);
+    async function load() {
+      setLoading(true);
+      try {
+        const [report, dashboard, inventory, suppliers, ai] = await Promise.all([
+          getReport(range), getDashboard(), getInventoryAnalytics(),
+          getSupplierAnalytics(), getRecommendations(),
+        ]);
+        if (!active) return;
+        const summary = dashboard.data;
+        setHealth(toHealth(summary));
+        setMetrics(toSummaryMetrics(report.data, summary));
+        setAssessment(toAssessment(report.data, summary));
+        setReports(toReports(report.data, summary, inventory.data, suppliers.data, ai.data.recommendations));
+        setFailed('');
+      } catch (failure) {
+        if (active) setFailed(failure.detail || 'We could not load your reports.');
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    load();
+    return () => { active = false; };
+  }, [range]);
 
   useEffect(() => {
     if (!job?.done) return undefined;
@@ -46,20 +75,46 @@ export default function ReportsPage() {
     return () => clearTimeout(timer);
   }, [job]);
 
-  const rangeLabel = DATE_RANGES.find((option) => option.id === range)?.label || 'This month';
+  const rangeLabel = DATE_RANGES.find((option) => option.id === range)?.label || 'Last 30 days';
   const term = query.trim().toLowerCase();
-  const visible = REPORTS.filter((report) => (
+  const visible = reports.filter((report) => (
     !term || [report.title, report.summary, ...report.sections].some((field) => field.toLowerCase().includes(term))
   ));
 
-  function handleExport(report, format) {
+  // Downloads the CSV the backend streams for this window. Only the sales
+  // report has an export endpoint; the others are marked exportable: false.
+  async function handleExport(report, format) {
     setJob({ report: report.title, format: format.label, done: false });
     document.getElementById('rp-export')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    try {
+      const csv = await exportReport(range);
+      const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `shelfsense-${range}-report.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+      setJob({ report: report.title, format: format.label, done: true });
+    } catch (failure) {
+      setJob({ report: report.title, format: format.label, done: true, error: failure.detail });
+    }
+  }
+
+  if (loading) {
+    return <div className="rp"><LoadingSpinner label="Preparing your reports" /></div>;
+  }
+
+  if (!loading && failed) {
+    return (
+      <div className="rp">
+        <ErrorState title="We could not load your reports" description={failed} />
+      </div>
+    );
   }
 
   return (
     <div className="rp">
-      <ExecutiveSummary onReady={() => setReady(true)} />
+      <ExecutiveSummary onReady={() => setReady(true)} health={health} metrics={metrics} assessment={assessment} />
 
       <AnimatePresence>
         {ready && (
@@ -134,10 +189,10 @@ export default function ReportsPage() {
             </section>
 
             <div id="rp-export">
-              <ExportCenter selected={selected} range={rangeLabel} onExport={handleExport} job={job} />
+              <ExportCenter selected={selected} range={rangeLabel} onExport={handleExport} job={job} reports={reports} />
             </div>
 
-            <ReportHistory rows={HISTORY} loading={loading} />
+            <ReportHistory rows={[]} loading={loading} />
           </motion.div>
         )}
       </AnimatePresence>

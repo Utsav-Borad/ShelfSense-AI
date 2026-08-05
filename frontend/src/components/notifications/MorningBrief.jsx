@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
-import { BRIEF_LINES, greetingFor } from './data';
+import { greetingFor } from './data';
 
 const EASE = [.16, 1, .3, 1];
 
 // The brief arrives as its own small timeline — the rail grows downward while
 // each line lands beneath it.
-export default function MorningBrief({ unreadCount, onJump, onReady }) {
+export default function MorningBrief({ lines = [], unreadCount, onJump, onReady }) {
   const { user } = useAuth();
   const [shown, setShown] = useState(0);
-  const revealing = shown < BRIEF_LINES.length;
+  const revealing = shown < lines.length;
 
   useEffect(() => {
     if (!revealing) { onReady?.(); return undefined; }
@@ -58,11 +58,11 @@ export default function MorningBrief({ unreadCount, onJump, onReady }) {
           className="nt-brief-rail"
           aria-hidden="true"
           initial={{ scaleY: 0 }}
-          animate={{ scaleY: revealing ? shown / BRIEF_LINES.length : 1 }}
+          animate={{ scaleY: revealing ? shown / lines.length : 1 }}
           transition={{ duration: .5, ease: EASE }}
         />
         <AnimatePresence initial={false}>
-          {BRIEF_LINES.slice(0, shown).map((line) => (
+          {lines.slice(0, shown).map((line) => (
             <motion.li
               key={line.id}
               initial={{ opacity: 0, x: -12, filter: 'blur(4px)' }}

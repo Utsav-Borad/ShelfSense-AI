@@ -62,6 +62,27 @@ def get_sales():
     ).all()
 
 
+def get_latest_sale_values():
+    """Fetch only the sales columns the AI pipeline reads, as plain dicts.
+
+    ``get_sales()`` builds a full Sales model instance per row, which costs most
+    of a second across a year of sales. The pipeline needs four columns and the
+    newest row per product, so this returns lightweight dictionaries instead.
+    Ordering oldest first means a simple overwrite leaves the newest row.
+    """
+    latest = {}
+    rows = Sales.objects.values(
+        "product_id",
+        "sale_date",
+        "selling_price",
+        "discount",
+    ).order_by("sale_date")
+
+    for row in rows:
+        latest[row["product_id"]] = row
+    return latest
+
+
 def get_suppliers():
     """
     Fetch all suppliers.

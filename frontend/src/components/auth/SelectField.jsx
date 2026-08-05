@@ -1,10 +1,12 @@
-import { forwardRef } from 'react';
 import { motion } from 'framer-motion';
 
-const SelectField = forwardRef(function SelectField(
-  { name, label, error, hint, options = [], placeholder, className = '', ...props },
-  ref,
-) {
+// Same contract as FormField: register()'s return value comes in as `field`,
+// and its ref goes straight onto the native <select>.
+export default function SelectField({
+  field = {}, label, error, hint, options = [], placeholder, className = '', ...props
+}) {
+  const { ref, ...registered } = field;
+  const name = registered.name;
   const fieldId = `field-${name}`;
   const errorId = `${fieldId}-error`;
   const hintId = `${fieldId}-hint`;
@@ -14,7 +16,7 @@ const SelectField = forwardRef(function SelectField(
     <div className={`auth-field ${className}`}>
       {label && <label htmlFor={fieldId}>{label}</label>}
       <div className={`auth-input-shell is-select${error ? ' is-invalid' : ''}`}>
-        <select ref={ref} id={fieldId} name={name} className="auth-input" aria-invalid={error ? 'true' : 'false'} aria-describedby={describedBy} {...props}>
+        <select ref={ref} id={fieldId} className="auth-input" aria-invalid={error ? 'true' : 'false'} aria-describedby={describedBy} {...registered} {...props}>
           {placeholder && <option value="">{placeholder}</option>}
           {options.map((option) => {
             const value = typeof option === 'string' ? option : option.value;
@@ -32,6 +34,4 @@ const SelectField = forwardRef(function SelectField(
       )}
     </div>
   );
-});
-
-export default SelectField;
+}

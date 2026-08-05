@@ -1,10 +1,9 @@
 import { motion } from 'framer-motion';
-import { RECOMMENDATIONS } from './data';
 
 const EASE = [.16, 1, .3, 1];
 
 // The scroll target for "Review recommendations" in the hero.
-export default function InventoryRecommendations() {
+export default function InventoryRecommendations({ items = [] }) {
   return (
     <section className="inv-recs" id="inventory-recommendations" aria-label="Inventory recommendations">
       <header className="inv-section-head">
@@ -15,7 +14,7 @@ export default function InventoryRecommendations() {
       </header>
 
       <div className="inv-rec-grid">
-        {RECOMMENDATIONS.map((rec, index) => (
+        {items.map((rec, index) => (
           <motion.article
             key={rec.id}
             className={`inv-rec tone-${rec.tone}`}

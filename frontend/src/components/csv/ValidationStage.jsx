@@ -117,7 +117,7 @@ export default function ValidationStage({ files, onBack, onSynchronize }) {
 
       <p className="csv-demo-note">
         <i className="bi bi-info-circle" aria-hidden="true" />
-        Placeholder mode — no file is parsed. Name a file with <code>invalid</code> to see the failure state, or <code>warn</code> to see warnings.
+        Column checks run on the server when you synchronize. A file that fails any check is rejected whole — nothing is half-imported.
       </p>
     </div>
   );

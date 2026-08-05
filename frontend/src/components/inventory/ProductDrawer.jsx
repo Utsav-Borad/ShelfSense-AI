@@ -1,14 +1,14 @@
 import { useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import useDrawer from '../../hooks/useDrawer';
+import EmptyState from '../ui/EmptyState';
 import StatusBadge from './StatusBadge';
-import { HISTORY } from './data';
 
 const EASE = [.16, 1, .3, 1];
 
 // A drawer, not a modal: it slides in from the right over a blurred backdrop
 // and leaves the table visible behind it.
-export default function ProductDrawer({ product, tab, onTab, onClose }) {
+export default function ProductDrawer({ product, tab, onTab, onClose, history = [] }) {
   // Escape, scroll lock, focus trap and focus restore — shared by every drawer.
   const panelRef = useRef(null);
   useDrawer(Boolean(product), onClose, panelRef);
@@ -16,10 +16,11 @@ export default function ProductDrawer({ product, tab, onTab, onClose }) {
   const rows = product ? [
     ['Barcode', product.barcode], ['Brand', product.brand], ['Category', product.category],
     ['Supplier', product.supplier], ['Unit', product.unit],
-    ['MRP', `₹${product.mrp}`], ['Selling price', `₹${product.price}`], ['Purchase price', `₹${product.cost}`],
+    ['MRP', `₹${product.mrp}`], ['Selling price', `₹${product.price}`],
     ['Available', `${product.available}`], ['Reserved', `${product.reserved}`], ['Damaged', `${product.damaged}`],
     ['Minimum stock', `${product.minStock}`], ['Stock value', `₹${product.value.toLocaleString('en-IN')}`],
-    ['Expiry date', product.expiryDate], ['Last sold', product.daysSinceSold === 0 ? 'Today' : `${product.daysSinceSold} days ago`],
+    ['Expiry date', product.expiryDate],
+    ['Predicted demand', product.predictedQuantity === null ? 'Not analysed' : `${product.predictedQuantity}`],
   ] : [];
 
   return (
@@ -99,9 +100,19 @@ export default function ProductDrawer({ product, tab, onTab, onClose }) {
                 </form>
               )}
 
-              {tab === 'history' && (
+              {/* Movement history needs an audit trail the backend does not
+                  keep — only the current stock position is stored. */}
+              {tab === 'history' && history.length === 0 && (
+                <EmptyState
+                  icon="bi-clock-history"
+                  title="No movement history"
+                  description="Stock movements are not recorded yet — only the current position is stored."
+                />
+              )}
+
+              {tab === 'history' && history.length > 0 && (
                 <ol className="inv-drawer-history">
-                  {HISTORY.map((event, index) => (
+                  {history.map((event, index) => (
                     <motion.li
                       key={event.id}
                       initial={{ opacity: 0, x: 14 }}

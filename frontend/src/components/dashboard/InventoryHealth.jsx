@@ -1,11 +1,10 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { INVENTORY_HEALTH } from './data';
 
 const EASE = [.16, 1, .3, 1];
 
 // Where the capital actually sits. Bars grow rather than appear.
-export default function InventoryHealth() {
+export default function InventoryHealth({ items = [] }) {
   return (
     <motion.section
       className="dash-card dash-panel"
@@ -24,7 +23,7 @@ export default function InventoryHealth() {
       </header>
 
       <ul className="dash-bars">
-        {INVENTORY_HEALTH.map((row, index) => (
+        {items.map((row, index) => (
           <li key={row.label}>
             <span className="dash-bar-head">
               <small><i className={`dash-swatch tone-${row.tone}`} aria-hidden="true" />{row.label}</small>

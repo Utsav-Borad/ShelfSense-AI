@@ -113,7 +113,6 @@ export function productIntelligence(products) {
 
 export const SORTS = [
   { value: 'score', label: 'AI score' },
-  { value: 'trend', label: 'Demand trend' },
   { value: 'value', label: 'Inventory value' },
   { value: 'stock', label: 'Current stock' },
   { value: 'name', label: 'Name' },

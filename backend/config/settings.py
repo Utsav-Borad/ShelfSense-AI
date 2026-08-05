@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'reports',
     'notifications',
     'analytics',
+    'uploads',
 ]
 
 MIDDLEWARE = [
@@ -142,6 +143,9 @@ AUTH_USER_MODEL = "authentication.User"
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    # Without this every DRF error (validation, 401, 404) would leave the API in
+    # raw DRF shape while hand-written error responses use the project envelope.
+    "EXCEPTION_HANDLER": "config.api_exceptions.standard_exception_handler",
 }
 
 SIMPLE_JWT = {
@@ -152,4 +156,41 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
-CORS_ALLOWED_ORIGINS = [origin.strip() for origin in os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:5173").split(",") if origin.strip()]
+# Vite may serve the app from localhost or 127.0.0.1, and moves to 5174+ when
+# 5173 is already taken. Those are different origins to the browser, so all of
+# them are allowed by default; set CORS_ALLOWED_ORIGINS in .env to override.
+_DEFAULT_CORS_ORIGINS = ",".join(
+    f"http://{host}:{port}"
+    for host in ("localhost", "127.0.0.1")
+    for port in (5173, 5174, 5175)
+)
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("CORS_ALLOWED_ORIGINS", _DEFAULT_CORS_ORIGINS).split(",")
+    if origin.strip()
+]
+
+# In development any local port is acceptable, so a port change never blocks
+# the frontend. Production relies on the explicit list above.
+if DEBUG:
+    CORS_ALLOWED_ORIGIN_REGEXES = [r"^http://(localhost|127\.0\.0\.1):\d+$"]
+
+# Where the frontend is served from, used to build links inside emails.
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+
+# Email. Set EMAIL_HOST_USER and EMAIL_HOST_PASSWORD in .env to send real mail
+# over SMTP; with either missing, mail is printed to the console instead so
+# development never fails on missing credentials.
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True").lower() == "true"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+EMAIL_TIMEOUT = int(os.getenv("EMAIL_TIMEOUT", "20"))
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "no-reply@shelfsense.ai")
+
+EMAIL_BACKEND = (
+    "django.core.mail.backends.smtp.EmailBackend"
+    if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD
+    else "django.core.mail.backends.console.EmailBackend"
+)

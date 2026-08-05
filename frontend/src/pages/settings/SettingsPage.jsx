@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
+import { updateBusiness } from '../../services/businessService';
 import { useTheme } from '../../hooks/useTheme';
 import {
   AiPanel, AppearancePanel, BusinessPanel, DataPanel, INTEGRATIONS,
@@ -31,7 +32,7 @@ function PanelSkeleton() {
 }
 
 export default function SettingsPage() {
-  const { user, business } = useAuth();
+  const { user, business, completeBusinessSetup } = useAuth();
   const { theme } = useTheme();
 
   const [ready, setReady] = useState(false);
@@ -52,6 +53,7 @@ export default function SettingsPage() {
 
   const [dirty, setDirty] = useState(false);
   const [saveState, setSaveState] = useState('idle'); // idle | saving | saved
+  const [saveError, setSaveError] = useState('');
   const [drawer, setDrawer] = useState(null);
 
   useEffect(() => {
@@ -77,9 +79,34 @@ export default function SettingsPage() {
     setDirty(true);
   }
 
-  function save() {
+  // Business details are the only settings the API persists — PUT /business/{id}/.
+  // Notification, appearance and system preferences have no endpoint behind
+  // them, so they stay on this device for the session.
+  async function save() {
     setSaveState('saving');
-    setTimeout(() => { setSaveState('saved'); setDirty(false); }, 900);
+    setSaveError('');
+
+    if (!business?.id) {
+      setSaveState('saved');
+      setDirty(false);
+      return;
+    }
+
+    try {
+      const response = await updateBusiness(business.id, {
+        shop_name: values.shop_name,
+        shop_type: values.shop_type,
+        address: values.address ?? business.address,
+        phone: values.phone ?? business.phone,
+        gst_number: values.gst_number ?? business.gst_number,
+      });
+      completeBusinessSetup(response.data);
+      setSaveState('saved');
+      setDirty(false);
+    } catch (failure) {
+      setSaveError(failure.detail || 'We could not save your changes.');
+      setSaveState('idle');
+    }
   }
 
   function discard() {
@@ -206,8 +233,8 @@ export default function SettingsPage() {
                 </motion.span>
               ) : (
                 <motion.span key="dirty" className="st-savebar-inner" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: .25 }}>
-                  <i className="bi bi-pencil" aria-hidden="true" />
-                  You have unsaved changes
+                  <i className={`bi ${saveError ? 'bi-exclamation-circle' : 'bi-pencil'}`} aria-hidden="true" />
+                  {saveError || 'You have unsaved changes'}
                   <span className="st-savebar-actions">
                     <button type="button" className="st-btn st-btn-quiet" onClick={discard} disabled={saveState === 'saving'}>Discard</button>
                     <button type="button" className="st-btn st-btn-primary" onClick={save} disabled={saveState === 'saving'}>

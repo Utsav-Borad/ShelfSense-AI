@@ -27,4 +27,10 @@ urlpatterns = [
     path('api/v1/inventory/', include('inventory.urls')),
     path('api/v1/analytics/', include('analytics.urls')),
     path('api/v1/sales/', include('sales.urls')),
+    # Advisory AI endpoints live in the analytics app but are mounted under
+    # /ai/ so the API reads the way the documentation describes it.
+    path('api/v1/ai/', include('analytics.ai_urls')),
+    path('api/v1/reports/', include('reports.urls')),
+    path('api/v1/notifications/', include('notifications.urls')),
+    path('api/v1/upload/', include('uploads.urls')),
 ]

@@ -74,7 +74,7 @@ class DemandForecastView(APIView):
         errors = self._validate_payload(request.data)
         if errors:
             return Response(
-                {"detail": "Invalid demand forecast request.", "errors": errors},
+                {"status": False, "message": "Validation Error", "errors": errors},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -82,8 +82,16 @@ class DemandForecastView(APIView):
             result = DemandForecastEngine().predict(request.data)
         except (FileNotFoundError, OSError, ValueError) as error:
             return Response(
-                {"detail": "Demand forecast is unavailable.", "error": str(error)},
+                {
+                    "status": False,
+                    "message": "Demand forecast is unavailable.",
+                    "errors": {"engine": [str(error)]},
+                },
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
-        return Response(result, status=status.HTTP_200_OK)
+        # Same {status, message, data} envelope as every other endpoint.
+        return Response(
+            {"status": True, "message": "Success", "data": result},
+            status=status.HTTP_200_OK,
+        )

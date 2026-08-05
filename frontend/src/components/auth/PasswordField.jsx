@@ -1,14 +1,14 @@
-import { forwardRef, useState } from 'react';
+import { useState } from 'react';
 import FormField from './FormField';
 
 // Password input with a visibility toggle. The toggle is a real button so it
 // is reachable by keyboard, and aria-pressed reports the state.
-const PasswordField = forwardRef(function PasswordField({ label = 'Password', ...props }, ref) {
+// The `field` prop from register() rides along in ...props down to FormField.
+export default function PasswordField({ label = 'Password', ...props }) {
   const [visible, setVisible] = useState(false);
 
   return (
     <FormField
-      ref={ref}
       label={label}
       type={visible ? 'text' : 'password'}
       icon="bi-lock"
@@ -26,6 +26,4 @@ const PasswordField = forwardRef(function PasswordField({ label = 'Password', ..
       {...props}
     />
   );
-});
-
-export default PasswordField;
+}

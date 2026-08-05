@@ -72,7 +72,7 @@ export default function UserManagement({
           <EmptyState icon="bi-people" title="No users match" description="Try a different search term, or clear the filters." />
         </div>
       ) : (
-        <Table columns={['User', 'Business', 'Role', 'Status', 'Syncs', 'Last active', '']}>
+        <Table columns={['User', 'Role', 'Status', 'Joined', '']}>
           {users.map((user, index) => (
             <motion.tr
               key={user.id}
@@ -89,11 +89,8 @@ export default function UserManagement({
                   </span>
                 </button>
               </td>
-              <td className="ad-muted">{user.business}</td>
               <td><span className={`ad-role tone-${user.role === 'admin' ? 'gold' : 'olive'}`}>{roleLabel(user.role)}</span></td>
               <td><Badge variant={USER_STATUS[user.status].tone}>{USER_STATUS[user.status].label}</Badge></td>
-              <td className="is-numeric">{user.syncs}</td>
-              <td className="ad-muted ad-nowrap">{user.lastActive}</td>
               <td className="ad-row-action">
                 <button
                   type="button"

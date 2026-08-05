@@ -4,6 +4,17 @@ import {
   ActivityTimeline, AiBrief, ChartsSection, DashboardSkeleton, Greeting,
   HealthHero, InventoryHealth, KpiGrid, QuickActions, Recommendations, TopProducts,
 } from '../../components/dashboard';
+import {
+  toAlerts, toBriefLines, toDemandSplit, toHealth, toInventoryHealth,
+  toKpis, toRecommendations, toRevenueBars, toSalesTrend, toTopProducts,
+} from '../../components/dashboard/fromApi';
+import ErrorState from '../../components/ui/ErrorState';
+import {
+  getDashboard, getInventoryAnalytics, getRevenue, getTrends,
+} from '../../services/analyticsService';
+import { getRecommendations } from '../../services/aiService';
+import { getNotifications } from '../../services/notificationsService';
+import { getReport } from '../../services/reportsService';
 import '../../styles/dashboard.css';
 
 // A few motionless particles over a soft warm glow. Purely atmosphere — the
@@ -30,50 +41,106 @@ function Atmosphere() {
 // numbers, then the analysis, then what to do about it.
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [view, setView] = useState(null);
 
-  // Placeholder settle, so the skeleton is a real state rather than decoration.
+  // One pass over the six endpoints the Decision Center needs. They are
+  // independent, so they run together and the page renders once they all land.
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 850);
-    return () => clearTimeout(timer);
+    let active = true;
+
+    async function load() {
+      try {
+        const [dashboard, revenue, trends, inventory, ai, report, alerts] = await Promise.all([
+          getDashboard(),
+          getRevenue(),
+          getTrends(),
+          getInventoryAnalytics(),
+          getRecommendations(),
+          getReport('monthly'),
+          getNotifications(),
+        ]);
+        if (!active) return;
+
+        const summary = dashboard.data;
+        const advice = ai.data.recommendations;
+
+        setView({
+          analysed: summary.analysed_products,
+          health: toHealth(summary),
+          brief: toBriefLines(summary, advice),
+          kpis: toKpis(summary),
+          salesTrend: toSalesTrend(trends.data),
+          revenueBars: toRevenueBars(revenue.data),
+          demandSplit: toDemandSplit(trends.data),
+          inventoryHealth: toInventoryHealth(inventory.data, summary),
+          topProducts: toTopProducts(report.data),
+          recommendations: toRecommendations(advice),
+          alerts: toAlerts(alerts.data.notifications),
+        });
+      } catch (failure) {
+        if (active) setError(failure.detail || 'We could not load your dashboard.');
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    load();
+    // Stops a late response from writing to a page the user has already left.
+    return () => { active = false; };
   }, []);
+
+  if (!loading && error) {
+    return (
+      <div className="dash">
+        <Atmosphere />
+        <Greeting />
+        <ErrorState title="We could not load your dashboard" description={error} />
+      </div>
+    );
+  }
 
   return (
     <div className="dash">
       <Atmosphere />
 
       <AnimatePresence mode="wait" initial={false}>
-        {loading ? (
+        {loading || !view ? (
           <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: .25 }}>
             <DashboardSkeleton />
           </motion.div>
         ) : (
           <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: .4 }}>
-            <Greeting />
+            <Greeting analysed={view.analysed} />
 
             {/* 1 + 2 — the two things that should be read first. */}
             <div className="dash-hero-row">
-              <HealthHero />
-              <AiBrief />
+              <HealthHero health={view.health} />
+              <AiBrief lines={view.brief} />
             </div>
 
             {/* 3 */}
-            <KpiGrid />
+            <KpiGrid items={view.kpis} />
 
             {/* 4 */}
-            <ChartsSection />
+            <ChartsSection
+              salesTrend={view.salesTrend}
+              revenueBars={view.revenueBars}
+              demandSplit={view.demandSplit}
+            />
 
             {/* 5 */}
             <div className="dash-insight-row">
-              <InventoryHealth />
-              <TopProducts />
+              <InventoryHealth items={view.inventoryHealth} />
+              <TopProducts items={view.topProducts} />
             </div>
 
             {/* 6 */}
-            <Recommendations />
+            <Recommendations items={view.recommendations} />
 
             {/* 7 */}
             <div className="dash-closing-row">
-              <ActivityTimeline />
+              <ActivityTimeline events={view.alerts} />
               <div className="dash-quick-wrap">
                 <header className="dash-section-head">
                   <div>

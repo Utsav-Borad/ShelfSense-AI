@@ -1,7 +1,6 @@
 import { useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import useDrawer from '../../hooks/useDrawer';
-import { Sparkline } from '../charts';
 import { ScoreRing } from './ProductCard';
 import { STATUS_META } from './data';
 
@@ -52,19 +51,14 @@ export default function ProductDrawer({ product, onClose }) {
                 <ScoreRing value={product.score} delay={.2} size="lg" />
                 <div>
                   <strong>AI product score</strong>
-                  <p>Blended from demand trend, margin, stock cover and how the category is moving.</p>
+                  <p>How well current stock covers the demand the model predicts for this product.</p>
                 </div>
               </div>
 
               <section className="pi-drawer-block">
                 <h4>Demand over 7 weeks</h4>
                 <div className="pi-drawer-chart">
-                  <Sparkline values={product.spark} tone={product.trend >= 0 ? 'olive' : 'danger'} delay={.25} />
                 </div>
-                <p className={`pi-drawer-trend ${product.trend >= 0 ? 'is-up' : 'is-down'}`}>
-                  <i className={`bi bi-arrow-${product.trend >= 0 ? 'up' : 'down'}-right`} aria-hidden="true" />
-                  {product.trend >= 0 ? 'Up' : 'Down'} {Math.abs(product.trend)}% against the previous period
-                </p>
               </section>
 
               <dl className="pi-drawer-rows">
@@ -72,8 +66,6 @@ export default function ProductDrawer({ product, onClose }) {
                   ['Current stock', `${product.stock}`],
                   ['Minimum stock', `${product.minStock}`],
                   ['Selling price', `₹${product.price}`],
-                  ['Purchase price', `₹${product.cost}`],
-                  ['Margin', `${product.margin}%`],
                   ['Inventory value', `₹${product.value.toLocaleString('en-IN')}`],
                 ].map(([label, value]) => (
                   <div key={label}><dt>{label}</dt><dd>{value}</dd></div>

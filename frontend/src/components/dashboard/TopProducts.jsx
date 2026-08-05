@@ -1,12 +1,11 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import EmptyState from '../ui/EmptyState';
-import { TOP_PRODUCTS } from './data';
 
 const EASE = [.16, 1, .3, 1];
 
-export default function TopProducts() {
-  const products = TOP_PRODUCTS;
+export default function TopProducts({ items = [] }) {
+  const products = items;
 
   return (
     <motion.section
@@ -39,14 +38,12 @@ export default function TopProducts() {
               <span className="dash-rank">{index + 1}</span>
               <span className="dash-product-main">
                 <strong>{product.name}</strong>
-                <small>{product.category} · {product.units} units</small>
+                <small>{product.units.toLocaleString('en-IN')} units sold</small>
               </span>
+              {/* No period-on-period badge: the reports endpoint returns totals
+                  for one window, with nothing to compare them against. */}
               <span className="dash-product-figures">
                 <b>₹{product.revenue.toLocaleString('en-IN')}</b>
-                <em className={product.trend >= 0 ? 'is-good' : 'is-bad'}>
-                  <i className={`bi bi-arrow-${product.trend >= 0 ? 'up' : 'down'}-short`} aria-hidden="true" />
-                  {Math.abs(product.trend)}%
-                </em>
               </span>
             </motion.li>
           ))}

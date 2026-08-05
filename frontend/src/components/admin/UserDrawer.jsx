@@ -44,14 +44,12 @@ export default function UserDrawer({ user, onRole, onToggleStatus, onClose }) {
 
             <div className="ad-drawer-body">
               <div className="ad-drawer-stats">
-                <div><small>Synchronizations</small><strong>{user.syncs}</strong></div>
-                <div><small>Recommendations</small><strong>{user.recommendations}</strong></div>
-                <div><small>Last active</small><strong>{user.lastActive}</strong></div>
+                <div><small>Role</small><strong>{user.role}</strong></div>
+                <div><small>Joined</small><strong>{user.joined}</strong></div>
               </div>
 
               <dl className="ad-drawer-rows">
                 {[
-                  ['Business', user.business],
                   ['Role', currentRole?.label],
                   ['Status', status.label],
                   ['Joined', user.joined],

@@ -23,7 +23,18 @@ class BusinessView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        business = _get_owner_business_or_404(request.user)
+        # "No business yet" is a normal state for a freshly registered user, not
+        # an error, so it returns data: null instead of a 404. The frontend uses
+        # this to decide whether to send the user to business setup.
+        try:
+            business = BusinessService.get_business_for_owner(request.user)
+        except Business.DoesNotExist:
+            return Response({
+                "status": True,
+                "message": "No business has been set up yet.",
+                "data": None,
+            })
+
         payload = {
             "status": True,
             "message": "Success",

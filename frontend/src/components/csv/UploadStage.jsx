@@ -33,7 +33,8 @@ export default function UploadStage({ files, setFiles, onContinue }) {
   }, [uploading, setFiles]);
 
   function handleSelect(id, file) {
-    setFiles((current) => ({ ...current, [id]: { name: file.name, size: file.size, progress: 0, status: 'uploading' } }));
+    // `file` is the real File object — the sync stage posts it.
+    setFiles((current) => ({ ...current, [id]: { name: file.name, size: file.size, file, progress: 0, status: 'uploading' } }));
   }
 
   function handleRemove(id) {

@@ -98,7 +98,7 @@ export default function RegisterPage() {
                       autoComplete="name"
                       autoFocus
                       error={errors.full_name?.message}
-                      {...register('full_name', rules.fullName)}
+                      field={register('full_name', rules.fullName)}
                     />
                     <FormField
                       label="Email address"
@@ -108,7 +108,7 @@ export default function RegisterPage() {
                       autoComplete="email"
                       hint="You will sign in with this address."
                       error={errors.email?.message}
-                      {...register('email', rules.email)}
+                      field={register('email', rules.email)}
                     />
                   </>
                 )}
@@ -120,7 +120,7 @@ export default function RegisterPage() {
                       autoComplete="new-password"
                       autoFocus
                       error={errors.password?.message}
-                      {...register('password', rules.password)}
+                      field={register('password', rules.password)}
                     />
                     <PasswordStrength value={password} />
                     <PasswordField
@@ -128,7 +128,7 @@ export default function RegisterPage() {
                       placeholder="Re-enter your password"
                       autoComplete="new-password"
                       error={errors.password_confirmation?.message}
-                      {...register('password_confirmation', rules.confirmPassword(() => getValues('password')))}
+                      field={register('password_confirmation', rules.confirmPassword(() => getValues('password')))}
                     />
                   </>
                 )}

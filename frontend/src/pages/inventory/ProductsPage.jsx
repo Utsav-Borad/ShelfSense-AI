@@ -1,15 +1,22 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import EmptyState from '../../components/ui/EmptyState';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import {
+  productIntelligence, toCategories, toProducts,
+} from '../../components/products/fromApi';
+import { getRecommendations } from '../../services/aiService';
+import {
+  getCategories, getInventory, getProducts,
+} from '../../services/inventoryService';
 import ErrorState from '../../components/ui/ErrorState';
 import {
-  PRODUCTS, ProductCard, ProductDrawer, ProductIntelligence, ProductTable,
-  ProductToolbar, productIntelligence,
+  ProductCard, ProductDrawer, ProductIntelligence, ProductTable,
+  ProductToolbar,
 } from '../../components/products';
 import '../../styles/products.css';
 
 const EASE = [.16, 1, .3, 1];
-const intelligence = productIntelligence(PRODUCTS);
 
 function ProductSkeleton({ view }) {
   const rows = [0, 1, 2, 3, 4, 5, 6, 7];
@@ -33,13 +40,35 @@ export default function ProductsPage() {
   const [highlighted, setHighlighted] = useState([]);
   const [openProduct, setOpenProduct] = useState(null);
 
+  const [products, setProducts] = useState([]);
+
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 900);
-    return () => clearTimeout(timer);
+    let active = true;
+
+    async function load() {
+      try {
+        const [productList, stock, categories, ai] = await Promise.all([
+          getProducts(), getInventory(), getCategories(), getRecommendations(),
+        ]);
+        if (!active) return;
+        setProducts(toProducts(productList.data, stock.data, categories.data, ai.data.recommendations));
+        setError(false);
+      } catch {
+        if (active) setError(true);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    load();
+    return () => { active = false; };
   }, []);
 
+  const intelligence = productIntelligence(products);
+  const categoryOptions = toCategories(products);
+
   const term = query.trim().toLowerCase();
-  const filtered = PRODUCTS
+  const filtered = products
     .filter((product) => {
       if (term && ![product.name, product.brand, product.category].some((field) => field.toLowerCase().includes(term))) return false;
       if (category !== 'all' && product.category !== category) return false;
@@ -70,6 +99,10 @@ export default function ProductsPage() {
     setHighlighted([]);
   }
 
+  if (loading) {
+    return <div className="pi"><LoadingSpinner label="Analysing your catalogue" /></div>;
+  }
+
   return (
     <div className="pi">
       <ProductIntelligence
@@ -88,6 +121,7 @@ export default function ProductsPage() {
           >
             <section className="pi-panel" id="product-results">
               <ProductToolbar
+                categories={categoryOptions}
                 query={query}
                 onQuery={(value) => { setQuery(value); setHighlighted([]); }}
                 category={category}
@@ -98,7 +132,7 @@ export default function ProductsPage() {
                 onSort={setSort}
                 view={view}
                 onView={setView}
-                total={PRODUCTS.length}
+                total={products.length}
                 shown={filtered.length}
                 filtered={isFiltered}
                 onReset={resetFilters}
