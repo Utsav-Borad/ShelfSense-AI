@@ -78,14 +78,14 @@ class ProductAnalyticsEngine:
             return "ATTENTION"
         return "HEALTHY"
 
-    def analyze_product(self, raw_features):
+    def analyze_product(self, raw_features, forecast=None):
         """Analyze one product using the configured business thresholds."""
         current_stock = self._required_number(
             raw_features,
             "available_quantity",
         )
         minimum_stock = self._required_number(raw_features, "minimum_stock")
-        forecast = self.forecast_engine.predict(raw_features)
+        forecast = forecast or self.forecast_engine.predict(raw_features)
         predicted_quantity = forecast["predicted_quantity"]
         analytics_date = pd.Timestamp.now(tz="UTC").tz_localize(None).normalize()
         stock_status = self._stock_status(
