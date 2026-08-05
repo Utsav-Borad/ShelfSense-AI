@@ -23,19 +23,28 @@ class DatasetBuilder:
     Machine Learning models.
     """
 
-    def __init__(self):
+    def __init__(self, data=None):
+        """Create a builder from loaded data or the Django data source.
 
-        self.businesses = load_businesses()
+        ``data`` keeps the orchestration layer from loading the same database
+        tables twice while preserving the existing no-argument behaviour.
+        """
+        if data is None:
+            data = {
+                "businesses": load_businesses(),
+                "categories": load_categories(),
+                "suppliers": load_suppliers(),
+                "products": load_products(),
+                "inventory": load_inventory(),
+                "sales": load_sales(),
+            }
 
-        self.categories = load_categories()
-
-        self.suppliers = load_suppliers()
-
-        self.products = load_products()
-
-        self.inventory = load_inventory()
-
-        self.sales = load_sales()
+        self.businesses = data["businesses"]
+        self.categories = data["categories"]
+        self.suppliers = data["suppliers"]
+        self.products = data["products"]
+        self.inventory = data["inventory"]
+        self.sales = data["sales"]
     def build(self):
         """
         Build one master dataset for

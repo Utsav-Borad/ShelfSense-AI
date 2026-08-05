@@ -17,10 +17,11 @@ class AnalyticsEngine:
         # Step 1
         raw_data = load_all_data()
 
-        # Step 2
+        # Step 2: build and clean the database-backed master dataset.
         cleaned_data = DataPreprocessor.preprocess_all(raw_data)
 
-        # Step 3
+        # Step 3: create model-ready features. Model-specific preprocessing is
+        # intentionally deferred until after the train/test split.
         engineered_data = FeatureEngineer.engineer_all(cleaned_data)
 
         return engineered_data

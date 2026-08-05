@@ -16,11 +16,11 @@ class FeatureEngineer:
     from the preprocessed dataset.
     """
     
-    def __init__(self):
+    def __init__(self, dataset=None):
+        if dataset is None:
+            dataset = DataPreprocessor().get_dataset()
 
-        preprocessor = DataPreprocessor()
-
-        self.dataset = preprocessor.get_dataset()
+        self.dataset = dataset
         
     def engineer(self):
         """
@@ -79,35 +79,20 @@ class FeatureEngineer:
         ).astype(int)
 
         # ==============================
-        # Sales & Profit Features
+        # Calendar Features
         # ==============================
 
-        dataset["revenue"] = (
-            dataset["quantity_sold"]
-            * dataset["selling_price_sale"]
-        )
+        sale_date = pd.to_datetime(dataset["sale_date"], errors="coerce")
+        dataset["day"] = sale_date.dt.day
+        dataset["month"] = sale_date.dt.month
+        dataset["weekday"] = sale_date.dt.weekday
+        dataset["week_of_year"] = sale_date.dt.isocalendar().week.astype("float")
+        dataset["is_weekend"] = (dataset["weekday"] >= 5).astype(int)
 
+        # This price margin is available without knowing quantity sold.
         dataset["profit_per_unit"] = (
             dataset["selling_price_sale"]
             - dataset["mrp"]
-        )
-
-        dataset["profit"] = (
-            dataset["profit_per_unit"]
-            * dataset["quantity_sold"]
-        )
-
-        dataset["discount_percentage"] = (
-            dataset["discount"]
-            / (
-                dataset["selling_price_sale"]
-                * dataset["quantity_sold"]
-            )
-        ) * 100
-
-        dataset["average_sale_value"] = (
-            dataset["total_amount"]
-            / dataset["quantity_sold"]
         )
 
         # ==============================
@@ -135,17 +120,6 @@ class FeatureEngineer:
             >= (dataset["minimum_stock"] * 3)
         ).astype(int)
 
-        dataset["dead_stock_candidate"] = (
-            (
-                dataset["available_quantity"]
-                > dataset["minimum_stock"]
-            )
-            &
-            (
-                dataset["quantity_sold"] <= 2
-            )
-        ).astype(int)
-        
         # Replace infinite values (if any)
         dataset.replace(
             [np.inf, -np.inf],
@@ -207,3 +181,8 @@ class FeatureEngineer:
         """
 
         return self.engineer()
+
+    @classmethod
+    def engineer_all(cls, dataset):
+        """Engineer features for the AnalyticsEngine orchestration path."""
+        return cls(dataset=dataset).engineer()
