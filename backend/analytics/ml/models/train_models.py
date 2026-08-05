@@ -1,8 +1,8 @@
-"""In-memory regression training for ShelfSense AI demand modelling.
+"""Regression training for ShelfSense AI demand modelling."""
 
-Models are intentionally not serialized here. Saving a selected model is a
-separate, explicitly approved deployment step.
-"""
+from pathlib import Path
+
+import joblib
 
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
@@ -25,6 +25,7 @@ class ModelTrainer:
     """Train and evaluate the approved regression models in memory."""
 
     RANDOM_STATE = 42
+    ARTIFACT_DIRECTORY = Path(__file__).resolve().parents[2] / "trained_models"
 
     def __init__(self):
         self.models = {}
@@ -121,3 +122,48 @@ class ModelTrainer:
                 }
 
         return self.results
+
+    def train_and_save_decision_tree(self):
+        """Fit and persist only the approved deterministic Decision Tree.
+
+        The transformer contains its fitted imputers and one-hot encoder, so
+        no separate encoder or scaler artifact is required for inference.
+        """
+        preprocessor, x_train, x_test, y_train, _ = self._build_training_data()
+        model = DecisionTreeRegressor(random_state=self.RANDOM_STATE)
+        x_train_ready, _ = preprocessor.fit_transform_splits(
+            x_train,
+            x_test,
+            scale_numeric=False,
+        )
+        model.fit(x_train_ready, y_train)
+
+        self.ARTIFACT_DIRECTORY.mkdir(parents=True, exist_ok=True)
+        model_path = self.ARTIFACT_DIRECTORY / "decision_tree.pkl"
+        preprocessing_path = (
+            self.ARTIFACT_DIRECTORY / "decision_tree_preprocessing.pkl"
+        )
+
+        joblib.dump(model, model_path)
+        joblib.dump(preprocessor.transformer, preprocessing_path)
+
+        self.models["decision_tree"] = model
+        self.transformers["decision_tree"] = preprocessor.transformer
+
+        return {
+            "model_path": model_path,
+            "preprocessing_path": preprocessing_path,
+        }
+
+    @staticmethod
+    def verify_saved_decision_tree(model_path, preprocessing_path):
+        """Load persisted Decision Tree artifacts and confirm their types."""
+        model = joblib.load(model_path)
+        transformer = joblib.load(preprocessing_path)
+
+        if not isinstance(model, DecisionTreeRegressor):
+            raise TypeError("Saved model is not a DecisionTreeRegressor.")
+        if not hasattr(transformer, "transform"):
+            raise TypeError("Saved preprocessing artifact is not a transformer.")
+
+        return model, transformer
