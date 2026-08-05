@@ -1,67 +1,209 @@
 """
 feature_engineering.py
 
-Creates new features from cleaned datasets
-for Machine Learning models.
+Creates new features for
+Machine Learning models.
 """
 
+import numpy as np
 import pandas as pd
-from datetime import datetime
 
+from analytics.services.preprocessing import DataPreprocessor
 
 class FeatureEngineer:
+    """
+    Creates additional features
+    from the preprocessed dataset.
+    """
+    
+    def __init__(self):
 
-    @staticmethod
-    def engineer_products(df):
-        """Create product features."""
+        preprocessor = DataPreprocessor()
 
-        df = df.copy()
+        self.dataset = preprocessor.get_dataset()
+        
+    def engineer(self):
+        """
+        Create new features for
+        Machine Learning.
+        """
+
+        dataset = self.dataset.copy()
+        
+        # ==============================
+        # Inventory Features
+        # ==============================
+
+        dataset["total_stock"] = (
+            dataset["available_quantity"]
+            + dataset["reserved_quantity"]
+            + dataset["damaged_quantity"]
+        )
+
+        dataset["inventory_value"] = (
+            dataset["available_quantity"]
+            * dataset["selling_price"]
+        )
+
+        dataset["reserved_ratio"] = (
+            dataset["reserved_quantity"]
+            / dataset["total_stock"]
+        )
+
+        dataset["damaged_ratio"] = (
+            dataset["damaged_quantity"]
+            / dataset["total_stock"]
+        )
+
+        dataset["available_ratio"] = (
+            dataset["available_quantity"]
+            / dataset["total_stock"]
+        )
+
+        # ==============================
+        # Expiry Features
+        # ==============================
 
         today = pd.Timestamp.today()
 
-        df["expiry_date"] = pd.to_datetime(df["expiry_date"])
-
-        df["days_until_expiry"] = (
-            df["expiry_date"] - today
+        dataset["days_to_expiry"] = (
+            dataset["expiry_date"] - today
         ).dt.days
 
-        return df
+        dataset["expired"] = (
+            dataset["days_to_expiry"] < 0
+        ).astype(int)
 
-    @staticmethod
-    def engineer_inventory(df):
-        """Create inventory features."""
+        dataset["near_expiry"] = (
+            dataset["days_to_expiry"] <= 30
+        ).astype(int)
 
-        df = df.copy()
+        # ==============================
+        # Sales & Profit Features
+        # ==============================
 
-        df["usable_stock"] = (
-            df["available_quantity"]
-            - df["reserved_quantity"]
-            - df["damaged_quantity"]
+        dataset["revenue"] = (
+            dataset["quantity_sold"]
+            * dataset["selling_price_sale"]
         )
 
-        return df
+        dataset["profit_per_unit"] = (
+            dataset["selling_price_sale"]
+            - dataset["mrp"]
+        )
 
-    @staticmethod
-    def engineer_sales(df):
-        """Create sales features."""
+        dataset["profit"] = (
+            dataset["profit_per_unit"]
+            * dataset["quantity_sold"]
+        )
 
-        df = df.copy()
+        dataset["discount_percentage"] = (
+            dataset["discount"]
+            / (
+                dataset["selling_price_sale"]
+                * dataset["quantity_sold"]
+            )
+        ) * 100
 
-        df["daily_revenue"] = (
-            df["quantity_sold"]
-            * df["selling_price"]
-        ) - df["discount"]
+        dataset["average_sale_value"] = (
+            dataset["total_amount"]
+            / dataset["quantity_sold"]
+        )
 
-        return df
+        # ==============================
+        # Stock Health Features
+        # ==============================
 
-    @staticmethod
-    def engineer_all(data):
+        dataset["usable_stock"] = (
+            dataset["available_quantity"]
+            - dataset["reserved_quantity"]
+            - dataset["damaged_quantity"]
+        )
 
-        return {
-            "products": FeatureEngineer.engineer_products(data["products"]),
-            "inventory": FeatureEngineer.engineer_inventory(data["inventory"]),
-            "sales": FeatureEngineer.engineer_sales(data["sales"]),
-            "suppliers": data["suppliers"],
-            "categories": data["categories"],
-            "businesses": data["businesses"],
-        }
+        dataset["stock_difference"] = (
+            dataset["available_quantity"]
+            - dataset["minimum_stock"]
+        )
+
+        dataset["low_stock"] = (
+            dataset["available_quantity"]
+            <= dataset["minimum_stock"]
+        ).astype(int)
+
+        dataset["overstock"] = (
+            dataset["available_quantity"]
+            >= (dataset["minimum_stock"] * 3)
+        ).astype(int)
+
+        dataset["dead_stock_candidate"] = (
+            (
+                dataset["available_quantity"]
+                > dataset["minimum_stock"]
+            )
+            &
+            (
+                dataset["quantity_sold"] <= 2
+            )
+        ).astype(int)
+        
+        # Replace infinite values (if any)
+        dataset.replace(
+            [np.inf, -np.inf],
+            0,
+            inplace=True,
+        )
+
+        # Fill remaining missing values
+        dataset.fillna(
+            0,
+            inplace=True,
+        )
+
+        return dataset
+    
+    def summary(self):
+        """
+        Display feature engineering summary.
+        """
+
+        dataset = self.engineer()
+
+        print("=" * 60)
+        print("ShelfSense AI Feature Engineered Dataset")
+        print("=" * 60)
+
+        print(f"Rows            : {dataset.shape[0]}")
+        print(f"Columns         : {dataset.shape[1]}")
+
+        print("\nColumn Names")
+        print("-" * 60)
+
+        for column in dataset.columns:
+            print(column)
+
+        print("\nMissing Values")
+        print("-" * 60)
+
+        print(dataset.isnull().sum())
+
+        print("\nMemory Usage")
+        print("-" * 60)
+
+        memory = (
+            dataset.memory_usage(deep=True).sum()
+            / 1024
+            / 1024
+        )
+
+        print(f"{memory:.2f} MB")
+
+        print("=" * 60)
+
+        return dataset
+
+    def get_dataset(self):
+        """
+        Return the engineered dataset.
+        """
+
+        return self.engineer()

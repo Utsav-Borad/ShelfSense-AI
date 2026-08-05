@@ -1,102 +1,143 @@
 """
 preprocessing.py
 
-Professional preprocessing pipeline
-for ShelfSense AI Machine Learning.
+Preprocesses the master dataset
+before Machine Learning training.
 """
 
 import pandas as pd
-import numpy as np
 
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import (
-    OneHotEncoder,
-    LabelEncoder,
-    StandardScaler,
-)
 from sklearn.impute import SimpleImputer
-from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+
+from analytics.ml.models.dataset_builder import DatasetBuilder
 
 
 class DataPreprocessor:
     """
-    Handles complete preprocessing
-    for both Regression and Classification.
+    Preprocess dataset for
+    Machine Learning.
     """
 
     def __init__(self):
+        builder = DatasetBuilder()
 
-        self.label_encoders = {}
+        self.dataset = builder.build()
 
-        self.regression_pipeline = None
+        self.encoders = {}
 
-        self.classification_pipeline = None
+    def preprocess(self):
+        """
+        Clean and preprocess the dataset.
+        """
 
-    # -------------------------------------------------------
-    # PRODUCT DATA CLEANING
-    # -------------------------------------------------------
+        dataset = self.dataset.copy()
 
-    @staticmethod
-    def clean_products(df):
-
-        df = df.copy()
-
-        df.drop_duplicates(inplace=True)
-
-        df["selling_price"] = df["selling_price"].fillna(0)
-
-        df["minimum_stock"] = df["minimum_stock"].fillna(0)
-
-        df["expiry_date"] = pd.to_datetime(
-            df["expiry_date"],
-            errors="coerce",
+        # Remove duplicate rows
+        dataset.drop_duplicates(
+            inplace=True,
         )
 
-        return df
-
-    # -------------------------------------------------------
-    # INVENTORY DATA CLEANING
-    # -------------------------------------------------------
-
-    @staticmethod
-    def clean_inventory(df):
-
-        df = df.copy()
-
-        df.fillna(0, inplace=True)
-
-        df["last_updated"] = pd.to_datetime(
-            df["last_updated"],
-            errors="coerce",
-        )
-
-        return df
-
-    # -------------------------------------------------------
-    # SALES DATA CLEANING
-    # -------------------------------------------------------
-
-    @staticmethod
-    def clean_sales(df):
-
-        df = df.copy()
-
-        df.drop_duplicates(inplace=True)
-
-        df["sale_date"] = pd.to_datetime(
-            df["sale_date"],
-            errors="coerce",
-        )
-
-        numeric_columns = [
-            "quantity_sold",
-            "selling_price",
-            "discount",
-            "total_amount",
+        # Convert date columns
+        date_columns = [
+            "manufacturing_date",
+            "expiry_date",
+            "last_updated",
+            "sale_date",
         ]
 
-        for column in numeric_columns:
-            df[column] = df[column].fillna(0)
+        for column in date_columns:
 
-        return df
+            if column in dataset.columns:
+
+                dataset[column] = pd.to_datetime(
+                    dataset[column],
+                    errors="coerce",
+                )
+
+        # Fill missing numeric values
+        numeric_columns = dataset.select_dtypes(
+            include=["number"],
+        ).columns
+
+        numeric_imputer = SimpleImputer(
+            strategy="median",
+        )
+
+        dataset[numeric_columns] = numeric_imputer.fit_transform(
+            dataset[numeric_columns]
+        )
+
+        # Fill missing categorical values
+        categorical_columns = dataset.select_dtypes(
+            include=["object"],
+        ).columns
+
+        categorical_imputer = SimpleImputer(
+            strategy="most_frequent",
+        )
+
+        dataset[categorical_columns] = (
+            categorical_imputer.fit_transform(
+                dataset[categorical_columns]
+            )
+        )
+
+        # Encode categorical columns
+        for column in categorical_columns:
+
+            encoder = LabelEncoder()
+
+            dataset[column] = encoder.fit_transform(
+                dataset[column].astype(str)
+            )
+
+            self.encoders[column] = encoder
+
+        return dataset
+
+    def summary(self):
+        """
+        Display preprocessing summary.
+        """
+
+        dataset = self.preprocess()
+
+        print("=" * 60)
+        print("ShelfSense AI Preprocessed Dataset")
+        print("=" * 60)
+
+        print(f"Rows            : {dataset.shape[0]}")
+        print(f"Columns         : {dataset.shape[1]}")
+
+        print("\nMissing Values")
+        print("-" * 60)
+
+        print(dataset.isnull().sum())
+
+        print("\nData Types")
+        print("-" * 60)
+
+        print(dataset.dtypes)
+
+        print("\nMemory Usage")
+        print("-" * 60)
+
+        memory = (
+            dataset.memory_usage(deep=True).sum()
+            / 1024
+            / 1024
+        )
+
+        print(f"{memory:.2f} MB")
+
+        print("=" * 60)
+
+        return dataset
+
+    def get_dataset(self):
+        """
+        Return the preprocessed dataset.
+        """
+
+        return self.preprocess()

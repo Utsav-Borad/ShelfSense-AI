@@ -1,95 +1,153 @@
 """
-dead_stock.py
+data_loader.py
 
-Detects dead stock and slow-moving products
-using historical sales data.
+Converts Django QuerySets into Pandas DataFrames.
+
+This module acts as a bridge between
+Django ORM and the Analytics Engine.
 """
 
 import pandas as pd
 
-from analytics.services.data_loader import (
-    load_products,
-    load_sales,
+from analytics.services.repository import (
+    get_products,
+    get_inventory,
+    get_sales,
+    get_suppliers,
+    get_categories,
+    get_businesses,
 )
 
 
-def detect_dead_stock():
+def load_products():
     """
-    Analyze product sales and classify stock status.
-
-    Returns:
-        Pandas DataFrame
+    Load products from the database.
     """
 
-    products_df = load_products()
-    sales_df = load_sales()
+    from products.models import Product
 
-    if products_df.empty or sales_df.empty:
-        return pd.DataFrame()
-
-    # Convert sale_date into datetime
-    sales_df["sale_date"] = pd.to_datetime(sales_df["sale_date"])
-
-    # Latest sale date in the dataset
-    latest_date = sales_df["sale_date"].max()
-
-    # Last sale date for each product
-    last_sales = (
-        sales_df.groupby("product__product_name")["sale_date"]
-        .max()
-        .reset_index()
+    queryset = Product.objects.values(
+        "id",
+        "business_id",
+        "category_id",
+        "supplier_id",
+        "barcode",
+        "product_name",
+        "brand",
+        "unit",
+        "mrp",
+        "selling_price",
+        "manufacturing_date",
+        "expiry_date",
+        "minimum_stock",
+        "status",
     )
 
-    # Merge with product list
-    result = products_df.merge(
-        last_sales,
-        left_on="product_name",
-        right_on="product__product_name",
-        how="left",
+    return pd.DataFrame(queryset)
+
+def load_inventory():
+    """
+    Load inventory from the database.
+    """
+
+    from inventory.models import Inventory
+
+    queryset = Inventory.objects.values(
+        "id",
+        "product_id",
+        "available_quantity",
+        "reserved_quantity",
+        "damaged_quantity",
+        "last_updated",
     )
 
-    # Calculate days since last sale
-    result["days_since_last_sale"] = (
-        latest_date - result["sale_date"]
-    ).dt.days
+    return pd.DataFrame(queryset)
 
-    def classify(days):
-        if pd.isna(days):
-            return "Dead Stock"
+def load_sales():
+    """
+    Load sales from the database.
+    """
 
-        if days >= 60:
-            return "Dead Stock"
+    from sales.models import Sales
 
-        if days >= 30:
-            return "Slow Moving"
+    queryset = Sales.objects.values(
+        "id",
+        "product_id",
+        "invoice_number",
+        "sale_date",
+        "quantity_sold",
+        "selling_price",
+        "discount",
+        "total_amount",
+    )
 
-        return "Healthy"
+    return pd.DataFrame(queryset)
 
-    result["stock_status"] = result[
-        "days_since_last_sale"
-    ].apply(classify)
 
-    def recommendation(status):
-        if status == "Dead Stock":
-            return "Apply heavy discount or remove product."
+def load_suppliers():
+    """
+    Load suppliers from the database.
+    """
 
-        if status == "Slow Moving":
-            return "Run promotional offers."
+    from suppliers.models import Supplier
 
-        return "Maintain current inventory."
+    queryset = Supplier.objects.values(
+        "id",
+        "business_id",
+        "supplier_name",
+        "phone",
+        "email",
+        "address",
+        "status",
+    )
 
-    result["recommendation"] = result[
-        "stock_status"
-    ].apply(recommendation)
+    return pd.DataFrame(queryset)
 
-    return result[
-        [
-            "id",
-            "product_name",
-            "category__category_name",
-            "supplier__supplier_name",
-            "days_since_last_sale",
-            "stock_status",
-            "recommendation",
-        ]
-    ]
+
+def load_categories():
+    """
+    Load categories from the database.
+    """
+
+    from categories.models import Category
+
+    queryset = Category.objects.values(
+        "id",
+        "business_id",
+        "category_name",
+        "description",
+    )
+
+    return pd.DataFrame(queryset)
+
+def load_businesses():
+    """
+    Load businesses into a Pandas DataFrame.
+    """
+    queryset = get_businesses()
+
+    return pd.DataFrame(
+        list(
+            queryset.values(
+                "id",
+                "shop_name",
+                "shop_type",
+                "gst_number",
+            )
+        )
+    )
+
+
+def load_all_data():
+    """
+    Load all datasets required for Analytics.
+    """
+
+    return {
+        "products": load_products(),
+        "inventory": load_inventory(),
+        "sales": load_sales(),
+        "suppliers": load_suppliers(),
+        "categories": load_categories(),
+        "businesses": load_businesses(),
+    }
