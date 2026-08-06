@@ -216,3 +216,17 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- Node / frontend -------------------------------------------------------
+# node_modules is rebuilt by `npm install` from package.json + package-lock.json.
+# It must never be committed: it is tens of thousands of files, and some
+# packages ship compiled binaries built for one operating system only.
+node_modules/
+.vite/
+frontend/dist/
+npm-debug.log*
+yarn-error.log*
+
+# Local environment files. Copy the .env.example next to each one and fill it in.
+.env.local
+.env.*.local
