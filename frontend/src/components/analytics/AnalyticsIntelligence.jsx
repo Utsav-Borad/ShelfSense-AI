@@ -1,17 +1,16 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import useCountUp from '../../hooks/useCountUp';
-import { BRIEF_LINES } from './data';
 
 const EASE = [.16, 1, .3, 1];
 const RADIUS = 72;
 
 // Fourth in the intelligence family — same rhythm as Inventory, Product and
 // Supplier, so the four pages read as one system.
-export default function AnalyticsIntelligence({ onInsight, onReady }) {
+export default function AnalyticsIntelligence({ lines = [], health = 0, onInsight, onReady }) {
   const [shown, setShown] = useState(0);
-  const score = useCountUp(94, { duration: 1800, delay: 320 });
-  const analysing = shown < BRIEF_LINES.length;
+  const score = useCountUp(health, { duration: 1800, delay: 320 });
+  const analysing = shown < lines.length;
 
   useEffect(() => {
     if (!analysing) { onReady?.(); return undefined; }
@@ -32,19 +31,19 @@ export default function AnalyticsIntelligence({ onInsight, onReady }) {
 
       <div className="an-hero-score">
         <div className="an-gauge">
-          <svg viewBox="0 0 170 170" role="img" aria-label="Forecast confidence 94 percent">
+          <svg viewBox="0 0 170 170" role="img" aria-label={`Business health ${health} out of 100`}>
             <circle className="an-gauge-track" cx="85" cy="85" r={RADIUS} />
             <motion.circle
               className="an-gauge-arc"
               cx="85" cy="85" r={RADIUS}
               initial={{ pathLength: 0 }}
-              animate={{ pathLength: .94 }}
+              animate={{ pathLength: health / 100 }}
               transition={{ duration: 1.8, delay: .32, ease: EASE }}
             />
           </svg>
           <div className="an-gauge-value">
             <strong>{Math.round(score)}<i>%</i></strong>
-            <span>forecast confidence</span>
+            <span>business health</span>
           </div>
         </div>
 
@@ -74,7 +73,7 @@ export default function AnalyticsIntelligence({ onInsight, onReady }) {
 
         <ul className="an-brief-lines" aria-live="polite">
           <AnimatePresence initial={false}>
-            {BRIEF_LINES.slice(0, shown).map((line) => (
+            {lines.slice(0, shown).map((line) => (
               <motion.li
                 key={line.id}
                 initial={{ opacity: 0, y: 10, filter: 'blur(4px)' }}

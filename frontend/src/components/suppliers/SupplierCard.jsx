@@ -5,9 +5,9 @@ import { STATUS_META } from './data';
 const EASE = [.16, 1, .3, 1];
 const RADIUS = 19;
 
-// A 0-100 ring. Used for share of stock value, not a reliability score —
-// no delivery history exists to score reliability from.
-export function ReliabilityRing({ value, delay = 0, size = 'md' }) {
+// A 0-100 ring showing this supplier's share of the capital held in stock.
+// Not a reliability score: no delivery history exists to compute one from.
+export function ShareRing({ value, delay = 0, size = 'md' }) {
   const shown = useCountUp(value, { duration: 1200, delay: delay * 1000 });
   const tone = value >= 92 ? 'success' : value >= 82 ? 'olive' : value >= 70 ? 'warning' : 'danger';
 
@@ -70,7 +70,7 @@ export default function SupplierCard({ supplier, index, highlighted, onOpen }) {
           <button type="button" onClick={() => onOpen(supplier)}>{supplier.name}</button>
           <small>{supplier.code} · {supplier.products} product(s)</small>
         </div>
-        <ReliabilityRing value={supplier.share} delay={delay + .25} />
+        <ShareRing value={supplier.share} delay={delay + .25} />
       </header>
 
       <span className={`sp-status tone-${meta.tone}`}>
@@ -88,10 +88,16 @@ export default function SupplierCard({ supplier, index, highlighted, onOpen }) {
       </dl>
 
       {supplier.atRisk > 0 && (
-        <p className="sp-flag">
+        <button
+          type="button"
+          className="sp-flag is-clickable"
+          onClick={() => onOpen(supplier)}
+          aria-label={`Show the ${supplier.atRisk} product(s) from ${supplier.name} that need attention`}
+        >
           <i className="bi bi-exclamation-triangle" aria-hidden="true" />
-          {supplier.atRisk} product(s) from this supplier need attention
-        </p>
+          <span>{supplier.atRisk} product(s) from this supplier need attention</span>
+          <i className="bi bi-arrow-right-short sp-flag-go" aria-hidden="true" />
+        </button>
       )}
     </motion.article>
   );

@@ -76,13 +76,10 @@ export default function SuppliersPage() {
 
   const isFiltered = Boolean(term) || status !== 'all' || highlighted.length > 0;
 
-  // A brief line applies its filter and marks the supplier it named, so the
-  // reader can see exactly who the sentence was about.
+  // A brief line names specific suppliers rather than applying a filter, so
+  // clicking one highlights them and clears everything else.
   function handleInsight(line) {
-    setStatus(line.filter.status || 'all');
-    setCategory('all');
-    setDelivery('all');
-    setDelays('all');
+    setStatus('all');
     setQuery('');
     setHighlighted(line.highlight || []);
     document.getElementById('supplier-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -90,10 +87,7 @@ export default function SuppliersPage() {
 
   function resetFilters() {
     setQuery('');
-    setCategory('all');
     setStatus('all');
-    setDelivery('all');
-    setDelays('all');
     setHighlighted([]);
   }
 

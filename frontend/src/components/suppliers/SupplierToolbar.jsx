@@ -3,15 +3,8 @@ import { SORTS, STATUS_META } from './data';
 
 const EASE = [.16, 1, .3, 1];
 
-
-const DELAY_OPTIONS = [
-  { value: 'all', label: 'Any delivery record' },
-  { value: 'clean', label: 'No recent delays' },
-  { value: 'delayed', label: 'Has recent delays' },
-];
-
 export default function SupplierToolbar({
-  query, onQuery, category, onCategory, status, onStatus,
+  query, onQuery, status, onStatus,
   sort, onSort, view, onView, total, shown, filtered, onReset,
 }) {
   return (

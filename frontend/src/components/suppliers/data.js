@@ -86,10 +86,3 @@ export const SORTS = [
 ];
 
 // Placeholder recent deliveries for the drawer.
-export const DELIVERIES = [
-  { id: 1, ref: 'PUR-1042', items: 48, value: 18400, status: 'on-time', when: '1 day ago' },
-  { id: 2, ref: 'PUR-1036', items: 62, value: 24100, status: 'on-time', when: '6 days ago' },
-  { id: 3, ref: 'PUR-1029', items: 34, value: 12600, status: 'late', when: '12 days ago' },
-  { id: 4, ref: 'PUR-1021', items: 51, value: 19800, status: 'on-time', when: '18 days ago' },
-  { id: 5, ref: 'PUR-1014', items: 44, value: 16200, status: 'short', when: '25 days ago' },
-];

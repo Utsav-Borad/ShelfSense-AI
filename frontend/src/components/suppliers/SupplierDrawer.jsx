@@ -1,12 +1,10 @@
 import { useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import useDrawer from '../../hooks/useDrawer';
-import { PerformanceBar, ReliabilityRing } from './SupplierCard';
-import { DELIVERIES, STATUS_META } from './data';
+import { STATUS_META } from './data';
+import { PerformanceBar, ShareRing } from './SupplierCard';
 
 const EASE = [.16, 1, .3, 1];
-const DELIVERY_TONE = { 'on-time': 'success', late: 'danger', short: 'warning' };
-const DELIVERY_LABEL = { 'on-time': 'On time', late: 'Late', short: 'Short' };
 
 export default function SupplierDrawer({ supplier, onClose }) {
   // Escape, scroll lock, focus trap and focus restore — shared by every drawer.
@@ -47,15 +45,15 @@ export default function SupplierDrawer({ supplier, onClose }) {
 
             <div className="sp-drawer-body">
               <div className="sp-drawer-score">
-                <ReliabilityRing value={supplier.share} delay={.2} size="lg" />
+                <ShareRing value={supplier.share} delay={.2} size="lg" />
                 <div>
-                  <strong>Reliability score</strong>
-                  <p>Share of the capital held across all your suppliers. Delivery performance is not scored — no purchase orders are recorded.</p>
+                  <strong>Share of capital held</strong>
+                  <p>How much of the money tied up in stock sits with this supplier. Delivery reliability is not scored: no purchase orders are recorded anywhere in the system.</p>
                 </div>
               </div>
 
               <section className="sp-drawer-block">
-                <h4>Delivery performance</h4>
+                <h4>Supply footprint</h4>
                 <PerformanceBar label="Share of stock value" value={supplier.share} tone="olive" delay={.25} />
               </section>
 
@@ -72,26 +70,36 @@ export default function SupplierDrawer({ supplier, onClose }) {
                 ))}
               </dl>
 
-              <section className="sp-drawer-block">
-                <h4>Recent deliveries</h4>
-                <ol className="sp-deliveries">
-                  {DELIVERIES.map((delivery, index) => (
-                    <motion.li
-                      key={delivery.id}
-                      initial={{ opacity: 0, x: 14 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: .4, delay: .3 + index * .07, ease: EASE }}
-                    >
-                      <span className={`sp-delivery-dot tone-${DELIVERY_TONE[delivery.status]}`} aria-hidden="true" />
-                      <div>
-                        <strong>{delivery.ref}</strong>
-                        <small>{delivery.items} items · ₹{delivery.value.toLocaleString('en-IN')}</small>
-                      </div>
-                      <span className={`sp-delivery-tag tone-${DELIVERY_TONE[delivery.status]}`}>{DELIVERY_LABEL[delivery.status]}</span>
-                      <time>{delivery.when}</time>
-                    </motion.li>
-                  ))}
-                </ol>
+              {/* The products behind the card's warning: which ones, and why.
+                  Straight from the recommendation engine. */}
+              <section className="sp-drawer-block" id="supplier-attention">
+                <h4>Products needing attention</h4>
+
+                {supplier.atRiskProducts.length === 0 ? (
+                  <p className="sp-drawer-clear">
+                    <i className="bi bi-check-circle" aria-hidden="true" />
+                    Every product from this supplier is within its stock and expiry limits.
+                  </p>
+                ) : (
+                  <ol className="sp-attention">
+                    {supplier.atRiskProducts.map((product, index) => (
+                      <motion.li
+                        key={product.id}
+                        initial={{ opacity: 0, x: 14 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: .4, delay: .3 + index * .07, ease: EASE }}
+                      >
+                        <span className={`sp-attention-dot tone-${product.tone}`} aria-hidden="true" />
+                        <div className="sp-attention-body">
+                          <strong>{product.name}</strong>
+                          <small>{product.reason}</small>
+                          <small className="sp-attention-evidence">{product.evidence}</small>
+                        </div>
+                        <span className={`sp-delivery-tag tone-${product.tone}`}>{product.type}</span>
+                      </motion.li>
+                    ))}
+                  </ol>
+                )}
               </section>
 
               <p className="sp-drawer-note">

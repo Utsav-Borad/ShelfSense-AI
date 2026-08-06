@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import ConfidenceRing from './ConfidenceRing';
 
 const EASE = [.16, 1, .3, 1];
 const HOVER_DELAY = 400; // within the 300–500ms the brief asks for
@@ -78,7 +77,6 @@ export default function ChartPanel({
             <header>
               <span className="an-insight-mark"><i className="bi bi-stars" aria-hidden="true" /></span>
               <strong>AI insight</strong>
-              <ConfidenceRing value={chart.explain.confidence} delay={.1} size="sm" />
             </header>
             <p className="an-insight-summary">{chart.explain.summary}</p>
             <dl>

@@ -9,6 +9,20 @@
 // catalogue they cover and how much capital sits in their stock. The page is
 // now built on that, plus the model's read on the products they supply.
 
+const ISSUE_LABEL = {
+  RESTOCK: 'Low stock',
+  NEAR_EXPIRY_ACTION: 'Near expiry',
+  DEAD_STOCK_ACTION: 'Dead stock',
+  OVERSTOCK_REDUCTION: 'Overstocked',
+};
+
+const ISSUE_TONE = {
+  RESTOCK: 'danger',
+  NEAR_EXPIRY_ACTION: 'danger',
+  DEAD_STOCK_ACTION: 'warning',
+  OVERSTOCK_REDUCTION: 'warning',
+};
+
 function statusFrom(supplier, atRisk) {
   if (supplier.status !== 'ACTIVE') return 'risk';
   if (atRisk > 0) return 'watch';
@@ -25,19 +39,31 @@ export function toSuppliers(analytics, suppliers, products, recommendations) {
   const supplierByProduct = {};
   products.forEach((product) => { supplierByProduct[product.id] = product.supplier; });
 
+  // Which of this supplier's products the model flagged, and why. Kept whole
+  // rather than as a count, so the card's warning can be opened and read.
   const atRiskBySupplier = {};
   recommendations.forEach((item) => {
     if (item.recommendation_type === 'HEALTHY_INVENTORY') return;
     const supplierId = supplierByProduct[item.product_id];
     if (supplierId === undefined) return;
-    atRiskBySupplier[supplierId] = (atRiskBySupplier[supplierId] || 0) + 1;
+    if (!atRiskBySupplier[supplierId]) atRiskBySupplier[supplierId] = [];
+    atRiskBySupplier[supplierId].push({
+      id: item.product_id,
+      name: item.product_name,
+      type: ISSUE_LABEL[item.recommendation_type] || 'Needs review',
+      tone: ISSUE_TONE[item.recommendation_type] || 'muted',
+      priority: item.recommendation_priority,
+      reason: item.recommendation_message,
+      evidence: `${item.current_stock} in stock against predicted demand of ${item.predicted_quantity}.`,
+    });
   });
 
   const totalValue = analytics.reduce((sum, row) => sum + row.stock_value, 0) || 1;
 
   return analytics.map((row) => {
     const details = detailsById[row.id] || {};
-    const atRisk = atRiskBySupplier[row.id] || 0;
+    const atRiskProducts = atRiskBySupplier[row.id] || [];
+    const atRisk = atRiskProducts.length;
 
     return {
       id: row.id,
@@ -52,6 +78,7 @@ export function toSuppliers(analytics, suppliers, products, recommendations) {
       // Share of all capital held across suppliers, as a 0-100 figure.
       share: Math.round((row.stock_value / totalValue) * 100),
       atRisk,
+      atRiskProducts,
       active: row.status === 'ACTIVE',
       status: statusFrom(row, atRisk),
       initials: row.supplier_name.split(' ').slice(0, 2).map((word) => word[0]).join('').toUpperCase(),

@@ -2,9 +2,18 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AreaChart, BarChart, DonutChart, LineChart } from '../../components/charts';
 import {
-  AiExplainDrawer, AnalyticsIntelligence, CATEGORY_SPLIT, CHARTS, ChartPanel,
-  HEADLINES, LABELS, SERIES, SUPPLIER_SCORES, TimeRange, getChart,
+  AiExplainDrawer, AnalyticsIntelligence, ChartPanel, TimeRange,
 } from '../../components/analytics';
+import {
+  toBriefLines, toCategorySplit, toCharts, toRevenueSeries,
+  toSalesSeries, toSupplierShares,
+} from '../../components/analytics/fromApi';
+import ErrorState from '../../components/ui/ErrorState';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import {
+  getCategoryAnalytics, getDashboard, getRevenue,
+  getSupplierAnalytics, getTrends,
+} from '../../services/analyticsService';
 import '../../styles/analytics.css';
 
 const EASE = [.16, 1, .3, 1];
@@ -26,21 +35,46 @@ export default function AnalyticsPage() {
   const [ready, setReady] = useState(false);
   const [loading, setLoading] = useState(true);
   const [revealed, setRevealed] = useState(0);
-  const [range, setRange] = useState('week');
+  const [range, setRange] = useState('monthly');
+  const [failed, setFailed] = useState('');
+  const [raw, setRaw] = useState(null);
   const [active, setActive] = useState(null);   // hover-explained chart
   const [flashed, setFlashed] = useState(null); // chart jumped to from the brief
   const [asked, setAsked] = useState(null);     // chart open in the drawer
 
-  // Placeholder settle once the brief has finished.
+  // The five aggregation endpoints this page draws from. Fetched once; the
+  // range selector trims the returned series rather than refetching.
   useEffect(() => {
-    if (!ready) return undefined;
-    const timer = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, [ready]);
+    let active = true;
+
+    async function load() {
+      try {
+        const [revenue, trends, categories, suppliers, dashboard] = await Promise.all([
+          getRevenue(), getTrends(), getCategoryAnalytics(),
+          getSupplierAnalytics(), getDashboard(),
+        ]);
+        if (!active) return;
+        setRaw({
+          revenue: revenue.data,
+          trends: trends.data,
+          categories: categories.data,
+          suppliers: suppliers.data,
+          summary: dashboard.data,
+        });
+      } catch (failure) {
+        if (active) setFailed(failure.detail || 'We could not load your analytics.');
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    load();
+    return () => { active = false; };
+  }, []);
 
   // Step the reveal counter so each panel lands after the one before it.
   useEffect(() => {
-    if (loading || revealed >= CHARTS.length) return undefined;
+    if (loading || revealed >= charts.length) return undefined;
     const timer = setTimeout(() => setRevealed(revealed + 1), REVEAL_STEP);
     return () => clearTimeout(timer);
   }, [loading, revealed]);
@@ -53,9 +87,21 @@ export default function AnalyticsPage() {
     return () => clearTimeout(timer);
   }, [flashed]);
 
-  const series = SERIES[range];
-  const labels = LABELS[range];
-  const headline = HEADLINES[range];
+
+  // Everything the page draws, derived from one fetch plus the chosen range.
+  const revenueSeries = raw ? toRevenueSeries(raw.revenue, range) : null;
+  const salesSeries = raw ? toSalesSeries(raw.trends, range) : null;
+  const categorySplit = raw ? toCategorySplit(raw.categories) : null;
+  const supplierShares = raw ? toSupplierShares(raw.suppliers) : null;
+  const charts = raw
+    ? toCharts(revenueSeries, salesSeries, categorySplit, supplierShares, raw.summary)
+    : [];
+  const briefLines = raw
+    ? toBriefLines(raw.revenue, raw.trends, raw.categories, raw.summary)
+    : [];
+  const health = raw && raw.summary.analysed_products
+    ? Math.round(((raw.summary.health_mix.HEALTHY || 0) / raw.summary.analysed_products) * 100)
+    : 0;
 
   function jumpToChart(id) {
     setFlashed(id);
@@ -71,17 +117,19 @@ export default function AnalyticsPage() {
     const key = `${chart.id}-${range}`;
     switch (chart.id) {
       case 'revenue':
-        return <LineChart key={key} id={key} values={series.revenue} labels={labels} tone="gold" />;
+        return <LineChart key={key} id={key} values={revenueSeries.values} labels={revenueSeries.labels} tone="gold" />;
       case 'sales':
-        return <BarChart key={key} values={series.sales} labels={labels} />;
-      case 'turnover':
-        return <AreaChart key={key} id={key} values={series.turnover} compare={series.turnoverCompare} labels={labels} />;
+        return <BarChart key={key} values={salesSeries.values} labels={salesSeries.labels} />;
       case 'category':
         return (
           <div className="an-donut-row" key={key}>
-            <DonutChart segments={CATEGORY_SPLIT} centerValue="34%" centerLabel="Dairy leads" />
+            <DonutChart
+              segments={categorySplit.segments}
+              centerValue={categorySplit.headline}
+              centerLabel={categorySplit.leader ? `${categorySplit.leader} leads` : 'No sales yet'}
+            />
             <ul className="an-legend">
-              {CATEGORY_SPLIT.map((segment) => (
+              {categorySplit.segments.map((segment) => (
                 <li key={segment.label}>
                   <i className={`tone-${segment.tone}`} aria-hidden="true" />
                   {segment.label}<b>{segment.value}%</b>
@@ -91,23 +139,27 @@ export default function AnalyticsPage() {
           </div>
         );
       case 'supplier':
-        return <BarChart key={key} values={SUPPLIER_SCORES.values} labels={SUPPLIER_SCORES.labels} highlightLast={false} />;
-      case 'dead':
-        return <LineChart key={key} id={key} values={series.deadStock} labels={labels} tone="olive" />;
-      case 'expiry':
-        return <BarChart key={key} values={series.nearExpiry} labels={labels} />;
-      case 'forecast':
-        return <AreaChart key={key} id={key} values={series.forecast} compare={series.forecastCompare} labels={labels} />;
+        return <BarChart key={key} values={supplierShares.values} labels={supplierShares.labels} highlightLast={false} />;
       default:
         return null;
     }
   }
 
-  const headlineFor = (chart) => (chart.metric ? headline[chart.metric] : null);
+  if (loading) {
+    return <div className="an"><LoadingSpinner label="Reading your analytics" /></div>;
+  }
+
+  if (failed) {
+    return (
+      <div className="an">
+        <ErrorState title="We could not load your analytics" description={failed} />
+      </div>
+    );
+  }
 
   return (
     <div className={`an${explaining ? ' is-explaining' : ''}`}>
-      <AnalyticsIntelligence onInsight={jumpToChart} onReady={() => setReady(true)} />
+      <AnalyticsIntelligence lines={briefLines} health={health} onInsight={jumpToChart} onReady={() => setReady(true)} />
 
       <AnimatePresence>
         {ready && (
@@ -123,17 +175,17 @@ export default function AnalyticsPage() {
 
             {loading ? <ChartSkeleton /> : (
               <div className="an-grid">
-                {CHARTS.map((chart) => (
+                {charts.map((chart) => (
                   <ChartPanel
                     key={chart.id}
-                    chart={{ ...chart, headline: headlineFor(chart) }}
+                    chart={chart}
                     revealed={revealed > chart.order}
                     isActive={active === chart.id}
                     isDimmed={Boolean(explaining) && explaining !== chart.id}
                     isFlashed={flashed === chart.id}
                     onExplainStart={setActive}
                     onExplainEnd={(id) => setActive((current) => (current === id ? null : current))}
-                    onAsk={(target) => { setActive(null); setAsked(getChart(target.id)); }}
+                    onAsk={(target) => { setActive(null); setAsked(charts.find((chart) => chart.id === target.id)); }}
                   >
                     {renderChart(chart)}
                   </ChartPanel>

@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { ReliabilityRing } from './SupplierCard';
+import { ShareRing } from './SupplierCard';
 import { STATUS_META } from './data';
 
 const EASE = [.16, 1, .3, 1];
@@ -70,7 +70,7 @@ export default function SupplierTable({ suppliers, highlighted, onOpen }) {
                       <i className={`bi ${meta.icon}`} aria-hidden="true" />{meta.label}
                     </span>
                   </td>
-                  <td className="is-numeric"><ReliabilityRing value={supplier.share} delay={.15} size="sm" /></td>
+                  <td className="is-numeric"><ShareRing value={supplier.share} delay={.15} size="sm" /></td>
                 </motion.tr>
               );
             })}

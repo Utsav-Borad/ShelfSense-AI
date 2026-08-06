@@ -1,7 +1,6 @@
 import { useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import useDrawer from '../../hooks/useDrawer';
-import ConfidenceRing from './ConfidenceRing';
 
 const EASE = [.16, 1, .3, 1];
 
@@ -47,10 +46,6 @@ export default function AiExplainDrawer({ chart, onClose }) {
             </header>
 
             <div className="an-drawer-body">
-              <div className="an-drawer-confidence">
-                <ConfidenceRing value={chart.explain.confidence} delay={.25} size="lg" label="AI confidence" />
-                <p>{chart.explain.summary}</p>
-              </div>
 
               {QUESTIONS.map((question, index) => (
                 <motion.section

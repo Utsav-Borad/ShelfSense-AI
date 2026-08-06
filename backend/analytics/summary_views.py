@@ -206,6 +206,57 @@ class TrendsAnalyticsView(APIView):
         )
 
 
+class CategoryAnalyticsView(APIView):
+    """Revenue and units sold per product category for the reporting window.
+
+    The data has always been there — Sales links to Product, which links to
+    Category — but nothing aggregated across that join until now.
+    """
+
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        business = require_business(request.user)
+        end_date = latest_sale_date(business)
+        start_date = end_date - timedelta(days=REVENUE_WINDOW_DAYS - 1)
+
+        rows = (
+            Sales.objects.filter(
+                product__business=business,
+                sale_date__gte=start_date,
+                sale_date__lte=end_date,
+            )
+            .values("product__category__category_name")
+            .annotate(
+                revenue=Sum("total_amount"),
+                units_sold=Sum("quantity_sold"),
+            )
+            .order_by("-revenue")
+        )
+
+        categories = [
+            {
+                "category_name": row["product__category__category_name"] or "Uncategorised",
+                "revenue": round(float(row["revenue"] or 0), 2),
+                "units_sold": int(row["units_sold"] or 0),
+            }
+            for row in rows
+        ]
+        total = sum(item["revenue"] for item in categories) or 1
+        for item in categories:
+            item["share"] = round((item["revenue"] / total) * 100, 1)
+
+        return success(
+            {
+                "window_days": REVENUE_WINDOW_DAYS,
+                "total_revenue": round(sum(item["revenue"] for item in categories), 2),
+                "count": len(categories),
+                "categories": categories,
+            },
+            "Category analytics generated successfully.",
+        )
+
+
 class SupplierAnalyticsView(APIView):
     """Supplier footprint: how much of the catalogue and stock each one covers."""
 

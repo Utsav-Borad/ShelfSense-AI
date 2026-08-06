@@ -1,6 +1,7 @@
 from django.urls import path
 
 from .summary_views import (
+    CategoryAnalyticsView,
     DashboardView,
     InventoryAnalyticsView,
     RevenueAnalyticsView,
@@ -21,4 +22,5 @@ urlpatterns = [
     path("inventory/", InventoryAnalyticsView.as_view(), name="analytics-inventory"),
     path("trends/", TrendsAnalyticsView.as_view(), name="analytics-trends"),
     path("suppliers/", SupplierAnalyticsView.as_view(), name="analytics-suppliers"),
+    path("categories/", CategoryAnalyticsView.as_view(), name="analytics-categories"),
 ]

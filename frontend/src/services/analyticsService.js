@@ -43,6 +43,16 @@ export async function getInventoryAnalytics() {
   }
 }
 
+/** Revenue and units sold per product category. */
+export async function getCategoryAnalytics() {
+  try {
+    const { data } = await apiClient.get('analytics/categories/');
+    return data;
+  } catch (error) {
+    throw normalizeError(error, 'We could not load category analytics.');
+  }
+}
+
 /** Supplier footprint. */
 export async function getSupplierAnalytics() {
   try {
@@ -59,4 +69,5 @@ export default {
   getTrends,
   getInventoryAnalytics,
   getSupplierAnalytics,
+  getCategoryAnalytics,
 };
