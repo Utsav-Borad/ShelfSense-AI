@@ -1,0 +1,42 @@
+barcode,product_name,brand,category_name,supplier_name,unit,mrp,selling_price,minimum_stock,expiry_date,available_quantity,reserved_quantity,damaged_quantity
+8901001,Amul Gold Milk 1L,Amul,Dairy,Amul Depot,1 L,72,68,60,2026-09-15,18,4,0
+8901002,Britannia Brown Bread,Britannia,Bakery,Gujarat Foods,400 g,55,52,40,2027-03-04,12,2,1
+8901003,Amul Butter 500g,Amul,Dairy,Amul Depot,500 g,285,272,30,2027-02-02,9,1,0
+8901004,Tata Salt 1kg,Tata,Grocery,Patel Agencies,1 kg,30,28,50,2027-09-10,22,0,0
+8901005,Surf Excel Powder 1kg,Surf,Household,Sharma Distributors,1 kg,135,128,25,2027-12-19,11,2,0
+8901006,Colgate Toothpaste 200g,Colgate,Personal Care,Sharma Distributors,200 g,125,118,20,2027-09-30,8,0,1
+8901010,Amul Fresh Cream 250ml,Amul,Dairy,Amul Depot,250 ml,95,90,15,2026-08-12,46,2,1
+8901011,Paneer 200g,Amul,Dairy,Amul Depot,200 g,105,99,18,2026-08-17,52,3,0
+8901012,Sweet Bun 6pc,Modern,Bakery,Gujarat Foods,6 pc,45,42,20,2026-08-10,61,0,2
+8901013,Frooti Mango 1L,Frooti,Beverages,Gujarat Foods,1 L,98,92,30,2026-08-28,105,4,0
+8901020,Curd Cup 400g,Amul,Dairy,Amul Depot,400 g,60,56,20,2026-07-31,34,0,3
+8901021,Rusk Toast 300g,Britannia,Bakery,Gujarat Foods,300 g,62,58,20,2026-07-23,28,1,2
+8901030,Bisleri Water 1L,Bisleri,Beverages,Local Ahmedabad Wholesale,1 L,22,20,40,2027-06-02,520,6,0
+8901031,Parle-G Biscuits 800g,Parle,Snacks,Parle Products,800 g,90,85,35,2027-04-23,430,4,2
+8901032,Maggi Noodles 12pk,Nestle,Snacks,Nestle India,12 pk,168,158,30,2027-04-03,380,3,0
+8901033,Fortune Sunflower Oil 1L,Fortune,Grocery,Patel Agencies,1 L,165,155,30,2027-05-13,350,5,1
+8901034,Coca Cola 750ml,Coca-Cola,Beverages,Local Ahmedabad Wholesale,750 ml,45,42,40,2027-06-22,480,2,0
+8901035,Lays Classic 52g,Lays,Snacks,Parle Products,52 g,20,19,50,2027-02-22,610,0,3
+8901040,Imported Olive Oil 500ml,Borges,Grocery,Local Ahmedabad Wholesale,500 ml,680,645,10,2027-09-10,140,0,0
+8901041,Diet Green Tea 25 bags,Tetley,Beverages,Nestle India,25 bags,210,199,12,2027-08-01,150,0,1
+8901042,Quinoa 500g,24 Mantra,Grocery,Patel Agencies,500 g,420,399,10,2027-08-21,120,0,0
+8901043,Scented Candle Pack,Iris,Household,Sharma Distributors,3 pc,340,320,8,2027-12-19,110,0,2
+8901050,Toned Milk 500ml,Amul,Dairy,Amul Depot,500 ml,34,32,40,2027-01-03,84,3,0
+8901051,Whole Wheat Atta 5kg,Aashirvaad,Grocery,Patel Agencies,5 kg,285,270,20,2027-06-02,44,2,0
+8901052,Toor Dal 1kg,Tata,Grocery,Patel Agencies,1 kg,190,180,25,2027-06-22,55,1,0
+8901053,Basmati Rice 5kg,India Gate,Grocery,Patel Agencies,5 kg,740,705,12,2027-07-12,26,2,0
+8901054,Dairy Milk Silk 150g,Cadbury,Snacks,Nestle India,150 g,180,172,25,2027-02-12,58,0,1
+8901055,Dettol Handwash 200ml,Dettol,Personal Care,Sharma Distributors,200 ml,99,94,20,2027-09-10,42,1,0
+8901056,Head and Shoulders 340ml,P and G,Personal Care,Sharma Distributors,340 ml,415,395,15,2027-08-21,33,2,0
+8901057,Vim Dishwash Gel 750ml,Vim,Household,Sharma Distributors,750 ml,175,165,18,2027-09-30,39,0,1
+8901058,Harpic Toilet Cleaner 1L,Harpic,Household,Sharma Distributors,1 L,215,205,15,2027-10-10,31,1,0
+8901059,Red Label Tea 500g,Red Label,Beverages,Gujarat Foods,500 g,285,270,20,2027-04-23,47,2,0
+8901060,Nescafe Classic 100g,Nescafe,Beverages,Nestle India,100 g,365,348,12,2027-04-13,27,0,1
+8901061,Good Day Cookies 200g,Britannia,Snacks,Parle Products,200 g,45,42,30,2027-02-02,68,3,0
+8901062,Kurkure Masala 90g,Kurkure,Snacks,Parle Products,90 g,25,23,40,2027-01-23,92,0,2
+8901063,Crocin Advance 15 tab,GSK,Medicine,Dabur India,15 tab,40,38,20,2027-12-19,45,0,0
+8901064,Dabur Honey 250g,Dabur,Medicine,Dabur India,250 g,185,176,15,2027-10-30,34,1,0
+8901065,Vicks Vaporub 50ml,Vicks,Medicine,Dabur India,50 ml,135,128,15,2027-11-19,30,0,1
+8901066,Classmate Notebook 172pg,Classmate,Stationery,Local Ahmedabad Wholesale,1 pc,60,56,25,2029-01-22,62,2,0
+8901070,Imported Truffle Sauce,Urbano,Grocery,Local Ahmedabad Wholesale,180 g,1250,1190,5,2027-06-02,12,0,0
+8901071,Gift Hamper Box Large,Iris,Household,Local Ahmedabad Wholesale,1 pc,899,850,5,2029-01-22,8,0,0

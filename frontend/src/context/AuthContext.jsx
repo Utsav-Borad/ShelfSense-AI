@@ -82,6 +82,13 @@ export function AuthProvider({ children }) {
     setBusiness(null);
   }
 
+  // Replaces the stored account after a profile edit, so the topbar, greeting
+  // and initials update without needing a sign-out.
+  function updateUser(account) {
+    localStorage.setItem(STORAGE.user, JSON.stringify(account));
+    setUser(account);
+  }
+
   function completeBusinessSetup(profile) {
     localStorage.setItem(STORAGE.business, JSON.stringify(profile));
     setBusiness(profile);
@@ -92,9 +99,13 @@ export function AuthProvider({ children }) {
     business,
     isAuthenticated: Boolean(user),
     hasBusiness: Boolean(business),
+    // The role is set on the server and only ever read here; the profile
+    // endpoint refuses to write it, so an account cannot promote itself.
+    isAdmin: user?.role === 'admin',
     isBootstrapping,
     login,
     logout,
+    updateUser,
     completeBusinessSetup,
   };
 

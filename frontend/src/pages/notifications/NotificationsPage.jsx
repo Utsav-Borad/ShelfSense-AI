@@ -8,6 +8,7 @@ import {
 import {
   toBriefLines, toNotifications,
 } from '../../components/notifications/fromApi';
+import { loadReadIds, saveReadIds } from '../../components/notifications/readState';
 import ErrorState from '../../components/ui/ErrorState';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { getRecommendations } from '../../services/aiService';
@@ -52,7 +53,9 @@ export default function NotificationsPage() {
           getNotifications(), getRecommendations(), getDashboard(),
         ]);
         if (!active) return;
-        const list = toNotifications(alerts.data.notifications, ai.data.recommendations);
+        // Read state is restored here rather than defaulted to unread, so a
+        // notification cleared earlier does not come back on every reload.
+        const list = toNotifications(alerts.data.notifications, ai.data.recommendations, loadReadIds());
         setItems(list);
         setBrief(toBriefLines(dashboard.data, list));
       } catch (failure) {
@@ -73,13 +76,24 @@ export default function NotificationsPage() {
     return () => clearTimeout(timer);
   }, [highlighted]);
 
+  // Persist read state whenever it changes, so a reload and the sidebar badge
+  // both agree with what is on screen. Skipped while loading, when `items` is
+  // still empty and writing would clear the stored set.
+  useEffect(() => {
+    if (loading) return;
+    saveReadIds(items.filter((item) => item.read).map((item) => item.id));
+  }, [items, loading]);
+
   const unreadCount = items.filter((item) => !item.read && !item.archived).length;
 
-  // Counts per tab, so the badges reflect what is actually behind each one.
+  // Tab badges count what still needs reading, not everything filed behind the
+  // tab — a tab that stayed at 12 after marking all read told you nothing.
+  // Completed is the exception: it is a done pile, so its total is the useful
+  // number and every item in it has been read anyway.
   const counts = {
-    critical: items.filter((item) => !item.archived && item.priority === 'critical').length,
-    important: items.filter((item) => !item.archived && item.priority === 'important').length,
-    general: items.filter((item) => !item.archived && item.priority === 'general').length,
+    critical: items.filter((item) => !item.archived && !item.read && item.priority === 'critical').length,
+    important: items.filter((item) => !item.archived && !item.read && item.priority === 'important').length,
+    general: items.filter((item) => !item.archived && !item.read && item.priority === 'general').length,
     completed: items.filter((item) => item.archived).length,
   };
 
@@ -104,8 +118,12 @@ export default function NotificationsPage() {
     setItems((current) => current.map((item) => (item.id === id ? { ...item, read: !item.read } : item)));
   }
 
+  // Archiving counts as reading it — an item cannot sit in Completed and still
+  // be waiting for your attention in the badge.
   function toggleArchive(id) {
-    setItems((current) => current.map((item) => (item.id === id ? { ...item, archived: !item.archived } : item)));
+    setItems((current) => current.map((item) => (
+      item.id === id ? { ...item, archived: !item.archived, read: true } : item
+    )));
     setSelected((current) => current.filter((value) => value !== id));
   }
 
@@ -166,7 +184,7 @@ export default function NotificationsPage() {
                 selected={selected}
                 unreadCount={unreadCount}
                 onBulkRead={() => { update(selected, { read: true }); setSelected([]); }}
-                onBulkArchive={() => { update(selected, { archived: true }); setSelected([]); }}
+                onBulkArchive={() => { update(selected, { archived: true, read: true }); setSelected([]); }}
                 onClearSelection={() => setSelected([])}
                 onMarkAllRead={() => setItems((current) => current.map((item) => ({ ...item, read: true })))}
               />

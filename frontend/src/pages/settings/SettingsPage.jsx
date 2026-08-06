@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
-import { updateBusiness } from '../../services/businessService';
+import { profile as fetchProfile, updateProfile } from '../../services/authService';
+import { getBusiness, updateBusiness } from '../../services/businessService';
 import { useTheme } from '../../hooks/useTheme';
 import {
   AiPanel, AppearancePanel, BusinessPanel, DataPanel, INTEGRATIONS,
@@ -12,9 +13,11 @@ import '../../styles/settings.css';
 
 const EASE = [.16, 1, .3, 1];
 
+// Only the fields with no backend behind them carry a default. Everything the
+// API owns is left blank here and filled in from the server on load.
 const DEFAULTS = {
-  full_name: '', email: '', phone: '+91 98765 43210', role: 'Business owner',
-  shop_name: 'Borad Provision Store', shop_type: 'Grocery', currency: 'INR',
+  full_name: '', email: '', phone: '', role: '', address: '',
+  shop_name: '', shop_type: 'Grocery', currency: 'INR',
   timezone: 'Asia/Kolkata (IST, GMT+5:30)', gst: '',
   themeMode: 'dark', accent: 'beige', reduceMotion: false, compact: false,
   priority: 'smart', quietStart: '22:00', quietEnd: '07:00',
@@ -32,7 +35,7 @@ function PanelSkeleton() {
 }
 
 export default function SettingsPage() {
-  const { user, business, completeBusinessSetup } = useAuth();
+  const { user, business, updateUser, completeBusinessSetup } = useAuth();
   const { theme } = useTheme();
 
   const [ready, setReady] = useState(false);
@@ -41,10 +44,14 @@ export default function SettingsPage() {
 
   const [values, setValues] = useState({
     ...DEFAULTS,
-    full_name: user?.full_name || 'Utsav Borad',
-    email: user?.email || 'owner@shelfsense.ai',
-    shop_name: business?.shop_name || DEFAULTS.shop_name,
+    full_name: user?.full_name || '',
+    email: user?.email || '',
+    role: user?.role || '',
+    shop_name: business?.shop_name || '',
     shop_type: business?.shop_type || DEFAULTS.shop_type,
+    phone: business?.phone || '',
+    gst: business?.gst_number || '',
+    address: business?.address || '',
     themeMode: theme,
   });
   const [prefs, setPrefs] = useState(NOTIFICATION_PREFS);
@@ -55,6 +62,37 @@ export default function SettingsPage() {
   const [saveState, setSaveState] = useState('idle'); // idle | saving | saved
   const [saveError, setSaveError] = useState('');
   const [drawer, setDrawer] = useState(null);
+
+  // The account and business are re-read from the API so this page always
+  // shows what the server actually holds, not what was cached at sign-in.
+  useEffect(() => {
+    let active = true;
+
+    async function load() {
+      try {
+        const [account, shop] = await Promise.all([fetchProfile(), getBusiness()]);
+        if (!active) return;
+        const me = account.data || {};
+        const biz = shop.data || {};
+        setValues((current) => ({
+          ...current,
+          full_name: me.full_name || '',
+          email: me.email || '',
+          role: me.role === 'admin' ? 'Administrator' : 'Business owner',
+          shop_name: biz.shop_name || '',
+          shop_type: biz.shop_type || current.shop_type,
+          phone: biz.phone || '',
+          gst: biz.gst_number || '',
+          address: biz.address || '',
+        }));
+      } catch (failure) {
+        if (active) setSaveError(failure.detail || 'We could not load your settings.');
+      }
+    }
+
+    load();
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     if (!ready) return undefined;
@@ -82,25 +120,31 @@ export default function SettingsPage() {
   // Business details are the only settings the API persists — PUT /business/{id}/.
   // Notification, appearance and system preferences have no endpoint behind
   // them, so they stay on this device for the session.
+  // Two things are persisted: the account (name and email) and the business
+  // record. Appearance, notification, AI and system preferences have no
+  // endpoint behind them and stay on this device for the session.
   async function save() {
     setSaveState('saving');
     setSaveError('');
 
-    if (!business?.id) {
-      setSaveState('saved');
-      setDirty(false);
-      return;
-    }
-
     try {
-      const response = await updateBusiness(business.id, {
-        shop_name: values.shop_name,
-        shop_type: values.shop_type,
-        address: values.address ?? business.address,
-        phone: values.phone ?? business.phone,
-        gst_number: values.gst_number ?? business.gst_number,
+      const account = await updateProfile({
+        full_name: values.full_name.trim(),
+        email: values.email.trim().toLowerCase(),
       });
-      completeBusinessSetup(response.data);
+      updateUser(account.data);
+
+      if (business?.id) {
+        const shop = await updateBusiness(business.id, {
+          shop_name: values.shop_name.trim(),
+          shop_type: values.shop_type,
+          address: values.address || business.address,
+          phone: values.phone || business.phone,
+          gst_number: values.gst ? values.gst.trim().toUpperCase() : null,
+        });
+        completeBusinessSetup(shop.data);
+      }
+
       setSaveState('saved');
       setDirty(false);
     } catch (failure) {
@@ -110,7 +154,18 @@ export default function SettingsPage() {
   }
 
   function discard() {
-    setValues({ ...DEFAULTS, full_name: user?.full_name || 'Utsav Borad', email: user?.email || 'owner@shelfsense.ai', themeMode: theme });
+    setValues({
+      ...DEFAULTS,
+      full_name: user?.full_name || '',
+      email: user?.email || '',
+      role: user?.role === 'admin' ? 'Administrator' : 'Business owner',
+      shop_name: business?.shop_name || '',
+      shop_type: business?.shop_type || DEFAULTS.shop_type,
+      phone: business?.phone || '',
+      gst: business?.gst_number || '',
+      address: business?.address || '',
+      themeMode: theme,
+    });
     setPrefs(NOTIFICATION_PREFS);
     setDirty(false);
   }

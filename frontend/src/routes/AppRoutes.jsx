@@ -23,8 +23,25 @@ import Analytics from '../pages/analytics/AnalyticsPage';
 import AiInsights from '../pages/ai/AiInsightsPage';
 import Reports from '../pages/reports/ReportsPage';
 import Notifications from '../pages/notifications/NotificationsPage';
-import Admin from '../pages/admin/AdminPage';
 import Settings from '../pages/settings/SettingsPage';
+
+// The admin console. Its own layout and its own sidebar — running the platform
+// is a different job from running a shop.
+import AdminLayout from '../layouts/AdminLayout';
+import AdminOverview from '../pages/admin/AdminOverviewPage';
+import AdminAccounts from '../pages/admin/AdminAccountsPage';
+import AdminBusinesses from '../pages/admin/AdminBusinessesPage';
+import AdminRoles from '../pages/admin/AdminRolesPage';
+
+// requireBusiness is off throughout: the console is platform-wide, and an
+// administrator does not have to run a shop of their own.
+function AdminRoute({ children }) {
+  return (
+    <ProtectedRoute requireAdmin requireBusiness={false}>
+      <AdminLayout>{children}</AdminLayout>
+    </ProtectedRoute>
+  );
+}
 
 export default function AppRoutes() {
   return <Routes>
@@ -51,7 +68,10 @@ export default function AppRoutes() {
     <Route path="notifications" element={<ProtectedRoute><AppLayout><Notifications/></AppLayout></ProtectedRoute>}/>
     <Route path="settings" element={<ProtectedRoute><AppLayout><Settings/></AppLayout></ProtectedRoute>}/>
     <Route path="csv-upload" element={<ProtectedRoute><AppLayout><CsvUpload/></AppLayout></ProtectedRoute>}/>
-    <Route path="admin" element={<ProtectedRoute><AppLayout><Admin/></AppLayout></ProtectedRoute>}/>
+    <Route path="admin" element={<AdminRoute><AdminOverview/></AdminRoute>}/>
+    <Route path="admin/accounts" element={<AdminRoute><AdminAccounts/></AdminRoute>}/>
+    <Route path="admin/businesses" element={<AdminRoute><AdminBusinesses/></AdminRoute>}/>
+    <Route path="admin/roles" element={<AdminRoute><AdminRoles/></AdminRoute>}/>
 
     <Route path="403" element={<ForbiddenPage/>}/>
     <Route path="500" element={<ServerErrorPage/>}/>

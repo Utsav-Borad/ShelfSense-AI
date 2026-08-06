@@ -4,6 +4,7 @@ export const TYPE_META = {
   'low-stock': { label: 'Low stock', icon: 'bi-arrow-down-circle', tone: 'warning' },
   'near-expiry': { label: 'Near expiry', icon: 'bi-clock-history', tone: 'danger' },
   'dead-stock': { label: 'Dead stock', icon: 'bi-box2-heart', tone: 'muted' },
+  overstock: { label: 'Overstocked', icon: 'bi-box-seam', tone: 'sage' },
   'supplier-delay': { label: 'Supplier delay', icon: 'bi-truck', tone: 'warning' },
   'revenue-milestone': { label: 'Revenue milestone', icon: 'bi-graph-up-arrow', tone: 'success' },
   'ai-recommendation': { label: 'AI recommendation', icon: 'bi-stars', tone: 'gold' },

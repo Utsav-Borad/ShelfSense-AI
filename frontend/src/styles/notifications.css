@@ -89,8 +89,14 @@
 .nt-item.tone-olive { border-left-color: var(--olive); }
 .nt-item.tone-primary { border-left-color: var(--primary); }
 .nt-item.tone-muted { border-left-color: color-mix(in srgb, var(--muted) 50%, transparent); }
-.nt-item.is-read { opacity: .74; }
-.nt-item.is-read:hover { opacity: 1; }
+/* Read items recede the way a read mail does: the accent stripe goes neutral,
+   the title drops its weight, and the whole row sits back. It stays legible,
+   and hovering brings it most of the way forward again. */
+.nt-item.is-read { opacity: .6; border-left-color: var(--border); background: color-mix(in srgb, var(--surface) 60%, transparent); }
+.nt-item.is-read:hover { opacity: .92; }
+.nt-item.is-read .nt-item-title { color: var(--muted); font-weight: 500; }
+.nt-item.is-read .nt-meta { font-weight: 500; }
+.nt-item.is-read .nt-priority, .nt-item.is-read .nt-action-hint { opacity: .7; }
 .nt-item.is-selected { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 7%, var(--surface)); }
 .nt-item.is-highlighted { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent); }
 

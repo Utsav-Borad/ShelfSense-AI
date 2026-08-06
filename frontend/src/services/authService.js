@@ -68,6 +68,16 @@ export async function resetPassword(payload) {
   }
 }
 
+/** PUT /auth/profile/  body: { full_name, email } — the signed-in account only. */
+export async function updateProfile(payload) {
+  try {
+    const { data } = await apiClient.put('auth/profile/', payload);
+    return data;
+  } catch (error) {
+    throw normalizeError(error, 'We could not save your profile.');
+  }
+}
+
 /** GET /auth/users/ — administrators only; a `user` role gets 403. */
 export async function getUsers() {
   try {
@@ -78,4 +88,50 @@ export async function getUsers() {
   }
 }
 
-export default { register, login, logout, profile, requestPasswordReset, resetPassword, getUsers };
+/** PATCH /auth/users/:id/  body: { role } or { is_active } — administrators
+ *  only. The API refuses when the id is the signed-in administrator's own. */
+export async function updateUser(id, payload) {
+  try {
+    const { data } = await apiClient.patch(`auth/users/${id}/`, payload);
+    return data;
+  } catch (error) {
+    throw normalizeError(error, 'We could not update that account.');
+  }
+}
+
+/** GET /auth/admin/overview/ — platform-wide totals; administrators only. */
+export async function getAdminOverview() {
+  try {
+    const { data } = await apiClient.get('auth/admin/overview/');
+    return data;
+  } catch (error) {
+    throw normalizeError(error, 'We could not load the platform summary.');
+  }
+}
+
+/** GET /auth/admin/accounts/ — every account with its shop and that shop's
+ *  totals; administrators only. */
+export async function getAdminAccounts() {
+  try {
+    const { data } = await apiClient.get('auth/admin/accounts/');
+    return data;
+  } catch (error) {
+    throw normalizeError(error, 'We could not load the accounts.');
+  }
+}
+
+/** GET /auth/admin/businesses/ — every business with its owner and totals. */
+export async function getAdminBusinesses() {
+  try {
+    const { data } = await apiClient.get('auth/admin/businesses/');
+    return data;
+  } catch (error) {
+    throw normalizeError(error, 'We could not load the businesses.');
+  }
+}
+
+export default {
+  register, login, logout, profile, updateProfile, requestPasswordReset,
+  resetPassword, getUsers, updateUser, getAdminOverview, getAdminAccounts,
+  getAdminBusinesses,
+};

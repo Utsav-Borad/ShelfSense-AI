@@ -223,3 +223,9 @@
 @media (prefers-reduced-motion: reduce) {
   .csv-mini-spinner, .csv-status-dot, .csv-skeleton-row { animation-duration: 2.4s; }
 }
+
+
+/* Synchronization failure: the bar and the ETA both stop claiming success. */
+.csv-progress.is-failed .csv-progress-fill { background: var(--danger); }
+.csv-eta-failed { display: inline-flex; align-items: center; gap: 6px; color: var(--danger); font-weight: 600; font-size: 12px; }
+.csv-note.is-error { border-color: color-mix(in srgb, var(--danger) 34%, transparent); background: color-mix(in srgb, var(--danger) 9%, transparent); color: var(--danger); }

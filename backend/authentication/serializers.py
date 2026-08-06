@@ -10,8 +10,8 @@ from .models import User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("id", "full_name", "email", "role", "created_at")
-        read_only_fields = ("id", "role", "created_at")
+        fields = ("id", "full_name", "email", "role", "is_active", "created_at")
+        read_only_fields = ("id", "role", "is_active", "created_at")
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -54,6 +54,39 @@ class LoginSerializer(serializers.Serializer):
 
 class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField()
+
+
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    """The two profile fields an account holder may change themselves.
+
+    `role` stays out on purpose: an ordinary user must not be able to promote
+    their own account by editing their profile.
+    """
+
+    class Meta:
+        model = User
+        fields = ("full_name", "email")
+
+    def validate_email(self, value):
+        value = value.lower()
+        taken = User.objects.filter(email=value)
+        if self.instance is not None:
+            taken = taken.exclude(pk=self.instance.pk)
+        if taken.exists():
+            raise serializers.ValidationError("An account with this email already exists.")
+        return value
+
+
+class AdminUserUpdateSerializer(serializers.ModelSerializer):
+    """The two things an administrator may change about another account.
+
+    Name and email stay out: those belong to the account holder and are edited
+    through ProfileUpdateSerializer.
+    """
+
+    class Meta:
+        model = User
+        fields = ("role", "is_active")
 
 
 class TokenRefreshSerializer(serializers.Serializer):

@@ -17,6 +17,10 @@ const NON_FIELD_KEYS = [
   'engine',
   'refresh',
   'token',
+  // Upload failures arrive under `file`. There is no input called "file" to
+  // attach them to, so without this the reason ("Missing required column(s)…")
+  // would be swallowed and only the generic "Validation Error" would show.
+  'file',
 ];
 
 // Errors arrive as ['message'] from DRF, but a plain string is also possible.

@@ -10,6 +10,7 @@ from .serializers import (
     LoginSerializer,
     LogoutSerializer,
     PasswordResetConfirmSerializer,
+    ProfileUpdateSerializer,
     PasswordResetRequestSerializer,
     RegisterSerializer,
     TokenRefreshSerializer,
@@ -145,6 +146,18 @@ class ProfileView(APIView):
 
     def get(self, request):
         return Response({"status": True, "message": "Success", "data": UserSerializer(request.user).data})
+
+    def put(self, request):
+        """Update the signed-in account's own name and email."""
+        serializer = ProfileUpdateSerializer(request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        payload = {
+            "status": True,
+            "message": "Profile updated successfully.",
+            "data": UserSerializer(user).data,
+        }
+        return Response(payload)
 
 
 class UserListView(APIView):

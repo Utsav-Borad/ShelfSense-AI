@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useAuth } from '../../hooks/useAuth';
 import { searchDestinations } from './SearchDestinations';
 
 // The topbar search. It navigates the workspace rather than querying data —
@@ -14,7 +15,8 @@ export default function WorkspaceSearch() {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
 
-  const results = searchDestinations(query);
+  const { isAdmin } = useAuth();
+  const results = searchDestinations(query, isAdmin);
 
   useEffect(() => {
     const onKey = (event) => {

@@ -1,8 +1,6 @@
 // CSV Synchronization Center — shared model.
-// No parsing happens anywhere here: we only read a File's name, size and type.
 
-// The three canonical report formats, with the exact column headers the
-// analytics engine expects (datasets/templates/).
+// The three canonical report formats, with the column headers shown on screen.
 export const REPORT_TYPES = [
   {
     id: 'sales', label: 'Sales report', file: 'sales_report.csv', icon: 'bi-receipt',
@@ -20,6 +18,13 @@ export const REPORT_TYPES = [
     columns: ['invoice_number', 'barcode', 'product_name', 'supplier_name', 'purchase_date', 'purchase_price', 'quantity', 'batch_number', 'expiry_date'],
   },
 ];
+
+// The order the files must be sent in, which is not the order they are shown.
+// Sales rows are matched against products that already exist and never create
+// them, so the two catalogue files have to land first or every sale is skipped.
+// Purchase runs before inventory because purchase *adds* stock while inventory
+// *sets* it: this way the snapshot is the final word on what is on the shelf.
+export const UPLOAD_ORDER = ['purchase', 'inventory', 'sales'];
 
 // The guided flow across the top of the page.
 export const FLOW_STEPS = [
@@ -86,34 +91,185 @@ export function formatBytes(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
-// PLACEHOLDER validation. Nothing is parsed — the outcome is decided by the
-// file name so all three states can be demonstrated:
-//   name contains "invalid" or "error" -> failed
-//   name contains "warn"               -> passed with warnings
-//   anything else                      -> clean
-// The shape mirrors the real engine's report (analytics/docs/csv_engine_handoff.md).
-export function validateFile(reportType, file) {
-  const name = (file?.name || '').toLowerCase();
-  const sourceRows = 60 + ((file?.size || 4200) % 180);
+// The two file layouts the server accepts, per report type. These mirror
+// CATALOGUE_COLUMNS and ID_COLUMNS in backend/uploads/services.py exactly — if
+// a required column changes there, it has to change here too, or the screen
+// will pass a file the server then rejects.
+//
+//   catalogue : keyed on barcode. Missing products and suppliers are created.
+//   id        : keyed on the database ids, as the generated dataset exports.
+export const ACCEPTED_SHAPES = {
+  sales: {
+    catalogue: ['barcode', 'sale_date', 'quantity_sold', 'selling_price', 'total_amount'],
+    id: ['id', 'product_id', 'invoice_number', 'sale_date', 'quantity_sold', 'selling_price', 'discount', 'total_amount'],
+  },
+  inventory: {
+    catalogue: ['barcode', 'product_name', 'available_quantity', 'reserved_quantity', 'damaged_quantity'],
+    id: ['id', 'product_id', 'available_quantity', 'reserved_quantity', 'damaged_quantity'],
+  },
+  purchase: {
+    catalogue: ['barcode', 'product_name', 'supplier_name', 'quantity'],
+    id: ['id', 'product_id', 'available_quantity', 'reserved_quantity', 'damaged_quantity'],
+  },
+};
 
-  if (name.includes('invalid') || name.includes('error')) {
-    const failures = {
-      sales: { code: 'invalid_dates', message: "Column 'sale_date' contains invalid dates.", column: 'sale_date', rows: [3, 41] },
-      inventory: { code: 'negative_quantity', message: "Column 'available_quantity' cannot be negative.", column: 'available_quantity', rows: [12] },
-      purchase: { code: 'missing_values', message: "Column 'supplier_name' has empty values.", column: 'supplier_name', rows: [7, 19, 20] },
-    };
-    return { valid: false, level: 'error', source_rows: sourceRows, accepted_rows: 0, errors: [failures[reportType]] };
-  }
+const INTEGER_COLUMNS = ['quantity', 'quantity_sold', 'available_quantity', 'reserved_quantity', 'damaged_quantity', 'minimum_stock'];
+const DECIMAL_COLUMNS = ['selling_price', 'total_amount', 'discount', 'mrp', 'purchase_price'];
+const DATE_COLUMNS = ['sale_date', 'expiry_date', 'purchase_date', 'manufacturing_date'];
+const QUANTITY_COLUMNS = ['quantity', 'quantity_sold', 'available_quantity', 'reserved_quantity', 'damaged_quantity'];
 
-  if (name.includes('warn')) {
+const MAX_REPORTED_ROWS = 6;
+
+// A small CSV reader — enough for a header and simple quoted cells. The server
+// parses the file properly again; this exists only to fail early.
+function parseCsv(text) {
+  const lines = text.replace(/\r\n?/g, '\n').split('\n').filter((line) => line.trim() !== '');
+  if (lines.length === 0) return { header: [], rows: [] };
+
+  const split = (line) => {
+    const cells = [];
+    let cell = '';
+    let quoted = false;
+    for (let i = 0; i < line.length; i += 1) {
+      const char = line[i];
+      if (char === '"') {
+        if (quoted && line[i + 1] === '"') { cell += '"'; i += 1; } else quoted = !quoted;
+      } else if (char === ',' && !quoted) {
+        cells.push(cell);
+        cell = '';
+      } else cell += char;
+    }
+    cells.push(cell);
+    return cells.map((value) => value.trim());
+  };
+
+  return { header: split(lines[0]), rows: lines.slice(1).map(split) };
+}
+
+function shapeOf(reportType, header) {
+  const present = new Set(header);
+  const shapes = ACCEPTED_SHAPES[reportType];
+  if (shapes.catalogue.every((column) => present.has(column))) return 'catalogue';
+  if (shapes.id.every((column) => present.has(column))) return 'id';
+  return null;
+}
+
+const problem = (code, message, column, rows = []) => ({ code, message, column, rows });
+
+// Reads the file and checks it against what the server will require, so a bad
+// file is stopped at this step instead of failing halfway through a sync.
+// Returns the same report shape the screen already renders.
+export async function validateFile(reportType, entry) {
+  if (!entry || !entry.file) {
     return {
-      valid: true, level: 'warning', source_rows: sourceRows, accepted_rows: sourceRows,
-      errors: [],
-      warnings: [{ code: 'trailing_whitespace', message: 'Trailing spaces were trimmed automatically.', column: 'product_name', rows: [5, 6] }],
+      valid: false, level: 'error', source_rows: 0, accepted_rows: 0,
+      errors: [problem('missing_file', 'No file was selected for this report.', '')],
+      warnings: [],
     };
   }
 
-  return { valid: true, level: 'success', source_rows: sourceRows, accepted_rows: sourceRows, errors: [], warnings: [] };
+  let text = '';
+  try {
+    text = await entry.file.text();
+  } catch {
+    return {
+      valid: false, level: 'error', source_rows: 0, accepted_rows: 0,
+      errors: [problem('unreadable', 'This file could not be read as text. Save it as CSV UTF-8.', '')],
+      warnings: [],
+    };
+  }
+
+  const { header, rows } = parseCsv(text);
+
+  if (header.length === 0) {
+    return {
+      valid: false, level: 'error', source_rows: 0, accepted_rows: 0,
+      errors: [problem('empty_file', 'The file is empty.', '')],
+      warnings: [],
+    };
+  }
+
+  const shape = shapeOf(reportType, header);
+  if (shape === null) {
+    const expected = ACCEPTED_SHAPES[reportType].catalogue;
+    const missing = expected.filter((column) => !header.includes(column));
+    return {
+      valid: false, level: 'error', source_rows: rows.length, accepted_rows: 0,
+      errors: [problem(
+        'missing_columns',
+        `Missing required column(s): ${missing.join(', ')}. This report needs: ${expected.join(', ')}.`,
+        missing[0] || '',
+      )],
+      warnings: [],
+    };
+  }
+
+  if (rows.length === 0) {
+    return {
+      valid: false, level: 'error', source_rows: 0, accepted_rows: 0,
+      errors: [problem('no_rows', 'The file has a header but no rows.', '')],
+      warnings: [],
+    };
+  }
+
+  const required = ACCEPTED_SHAPES[reportType][shape];
+  const position = {};
+  header.forEach((column, at) => { position[column] = at; });
+
+  const errors = [];
+  const warnings = [];
+
+  // Only columns present in the file are checked, and blank cells are a
+  // problem only when the column is one this shape requires — so an optional
+  // column left empty never blocks an upload.
+  const check = (column, test, code, message) => {
+    if (!(column in position)) return;
+    const offenders = [];
+    rows.forEach((row, at) => {
+      const value = (row[position[column]] || '').trim();
+      if (value === '') {
+        if (required.includes(column)) offenders.push(at + 2);
+        return;
+      }
+      if (!test(value)) offenders.push(at + 2);
+    });
+    if (offenders.length > 0) {
+      errors.push(problem(code, message, column, offenders.slice(0, MAX_REPORTED_ROWS)));
+    }
+  };
+
+  const isInteger = (value) => /^-?\d+$/.test(value);
+  const isNumber = (value) => /^-?\d+(\.\d+)?$/.test(value);
+  const isDate = (value) => /^\d{4}-\d{2}-\d{2}/.test(value) && !Number.isNaN(Date.parse(value.slice(0, 10)));
+
+  INTEGER_COLUMNS.forEach((column) => check(column, isInteger, 'not_a_whole_number', `Column '${column}' must contain whole numbers.`));
+  DECIMAL_COLUMNS.forEach((column) => check(column, isNumber, 'not_a_number', `Column '${column}' must contain numbers.`));
+  DATE_COLUMNS.forEach((column) => check(column, isDate, 'invalid_date', `Column '${column}' must use YYYY-MM-DD format.`));
+  QUANTITY_COLUMNS.forEach((column) => check(column, (value) => isInteger(value) && Number(value) >= 0, 'negative_quantity', `Column '${column}' cannot be negative.`));
+
+  // A catalogue file may have to create a product, which needs a name.
+  if (shape === 'catalogue') {
+    check('product_name', () => true, 'missing_values', "Column 'product_name' cannot be empty.");
+  }
+
+  if (shape === 'id') {
+    warnings.push(problem(
+      'id_shape',
+      'This file is keyed on database ids. Rows for products this business does not own will be skipped.',
+      'product_id',
+    ));
+  }
+
+  const valid = errors.length === 0;
+  return {
+    valid,
+    level: valid ? (warnings.length > 0 ? 'warning' : 'success') : 'error',
+    shape,
+    source_rows: rows.length,
+    accepted_rows: valid ? rows.length : 0,
+    errors,
+    warnings,
+  };
 }
 
 // Placeholder history rows.

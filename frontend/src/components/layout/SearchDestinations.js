@@ -11,13 +11,16 @@ const DESTINATIONS = [
   { to: '/notifications', label: 'Notifications', hint: 'Alerts and the morning brief', icon: 'bi-bell', keywords: 'alerts messages unread brief inbox archive' },
   { to: '/csv-upload', label: 'CSV Upload', hint: 'Synchronize your POS exports', icon: 'bi-cloud-arrow-up', keywords: 'sync synchronize import upload file validation history' },
   { to: '/settings', label: 'Settings', hint: 'Profile, appearance and AI preferences', icon: 'bi-gear', keywords: 'preferences profile password theme dark light security account privacy' },
-  { to: '/admin', label: 'Admin', hint: 'Users, roles and platform health', icon: 'bi-shield-check', keywords: 'users roles permissions audit platform system backup support' },
+  { to: '/admin', label: 'Admin', hint: 'Accounts, roles and platform totals', icon: 'bi-shield-check', keywords: 'users roles permissions accounts platform', adminOnly: true },
 ];
 
-export function searchDestinations(query) {
+/** `isAdmin` keeps the admin console out of a business owner's results — the
+ *  route sends them straight back, so offering it would be a dead end. */
+export function searchDestinations(query, isAdmin = false) {
   const term = query.trim().toLowerCase();
   if (!term) return [];
   return DESTINATIONS
+    .filter((item) => !item.adminOnly || isAdmin)
     .map((item) => {
       const label = item.label.toLowerCase();
       // Rank a label match above a keyword match, and a prefix above a

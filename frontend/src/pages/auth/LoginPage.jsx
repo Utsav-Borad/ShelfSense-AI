@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { AuthLayout, FormAlert, FormField, PasswordField, SubmitButton, rules } from '../../components/auth';
 import { useAuth } from '../../hooks/useAuth';
 import { login as loginRequest } from '../../services/authService';
+import { homeFor } from '../../routes/home';
 
 const EASE = [.16, 1, .3, 1];
 
@@ -27,8 +28,8 @@ export default function LoginPage() {
       setSuccess(true);
       // Awaited so the business is known before we navigate — otherwise the
       // route guard would send an existing owner to /business-setup.
-      await login(user, { access, refresh });
-      setTimeout(() => navigate('/dashboard', { replace: true }), 550);
+      const shop = await login(user, { access, refresh });
+      setTimeout(() => navigate(homeFor(user, shop), { replace: true }), 550);
     } catch (error) {
       // Field-level errors from the API map onto the form; anything else
       // becomes a form-level banner.

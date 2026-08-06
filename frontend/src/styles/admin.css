@@ -291,3 +291,44 @@
   .ad-sk-row, .ad-live-dot { animation-duration: 3s; }
   .ad-kpi:hover .ad-sweep { animation: none; }
 }
+
+/* ------------------------------------------------- admin console additions */
+/* The admin sidebar. Same shell as the workspace one, tinted gold so it is
+   obvious at a glance which area you are in. */
+.sidebar.is-admin { background: color-mix(in srgb, var(--gold) 5%, var(--surface)); }
+.sidebar.is-admin .sidebar-nav a.active { background: color-mix(in srgb, var(--gold) 18%, transparent); }
+.sidebar.is-admin .sidebar-nav a:hover { background: color-mix(in srgb, var(--gold) 11%, transparent); }
+.brand-mark.is-admin { background: var(--gold); }
+.status-dot.is-admin { background: var(--gold); }
+
+.sidebar-return { margin-top: auto; padding-top: 14px; }
+.sidebar-return a { min-height: 40px; display: flex; align-items: center; gap: 13px; padding: 0 12px; border: 1px dashed var(--border); border-radius: 10px; color: var(--muted); font-size: 12.5px; font-weight: 500; white-space: nowrap; transition: color .16s, border-color .16s; }
+.sidebar-return a:hover { border-color: color-mix(in srgb, var(--gold) 45%, transparent); color: var(--text); }
+.sidebar-return i { font-size: 15px; width: 18px; text-align: center; }
+.sidebar.is-admin .sidebar-footer { margin-top: 16px; }
+
+/* Table cells that carry a second line — a shop with its size, an owner with
+   their email. */
+.ad-shop-cell strong { display: block; font-size: 12.5px; font-weight: 600; }
+.ad-shop-cell small { display: block; margin-top: 2px; color: var(--muted); font-size: 10.5px; }
+.ad-none { color: var(--muted); font-size: 11.5px; font-style: italic; }
+
+/* The shop totals inside the account drawer. */
+.ad-shop-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+.ad-shop-stats div { padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.ad-shop-stats strong { display: block; font-size: 15px; font-weight: 700; letter-spacing: -.02em; }
+.ad-shop-stats small { display: block; margin-top: 3px; color: var(--muted); font-size: 10.5px; }
+
+/* Role assignment list. */
+.ad-assign { display: grid; gap: 8px; margin: 18px 0 0; padding: 0; list-style: none; }
+.ad-assign li { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+.ad-assign li > div { flex: 1; min-width: 0; }
+.ad-assign strong { display: block; font-size: 12.5px; font-weight: 600; }
+.ad-assign small { display: block; margin-top: 2px; color: var(--muted); font-size: 10.5px; }
+.ad-assign .ad-btn { flex: 0 0 auto; }
+
+@media (max-width: 720px) {
+  .ad-shop-stats { grid-template-columns: repeat(2, 1fr); }
+  .ad-assign li { flex-wrap: wrap; }
+  .ad-assign .ad-btn { width: 100%; justify-content: center; }
+}

@@ -6,8 +6,10 @@ const EASE = [.16, 1, .3, 1];
 const TONE_ICON = { success: 'bi-check-circle-fill', warning: 'bi-exclamation-triangle-fill', error: 'bi-x-circle-fill' };
 const TONE_TEXT = { success: 'Passed', warning: 'Passed with notes', error: 'Failed' };
 
-// Frontend-only validation UI. The result comes from validateFile(), which
-// decides by file name — no CSV is read.
+// The validate step. validateFile() reads each file and checks it against the
+// columns and cell types the server requires, so a file that would be rejected
+// during synchronization is stopped here instead — nothing is uploaded until
+// all three reports pass.
 export default function ValidationStage({ files, onBack, onSynchronize }) {
   const [checking, setChecking] = useState(true);
   const [results, setResults] = useState({});
@@ -17,11 +19,18 @@ export default function ValidationStage({ files, onBack, onSynchronize }) {
   useEffect(() => {
     setChecking(true);
     setResults({});
-    const timers = REPORT_TYPES.map((report, index) => setTimeout(() => {
-      setResults((current) => ({ ...current, [report.id]: validateFile(report.id, files[report.id]) }));
+    let active = true;
+    const timers = REPORT_TYPES.map((report, index) => setTimeout(async () => {
+      const result = await validateFile(report.id, files[report.id]);
+      if (!active) return;
+      setResults((current) => ({ ...current, [report.id]: result }));
       if (index === REPORT_TYPES.length - 1) setChecking(false);
     }, 700 + index * 650));
-    return () => timers.forEach(clearTimeout);
+
+    return () => {
+      active = false;
+      timers.forEach(clearTimeout);
+    };
   }, [files]);
 
   const done = Object.values(results);
@@ -117,7 +126,7 @@ export default function ValidationStage({ files, onBack, onSynchronize }) {
 
       <p className="csv-demo-note">
         <i className="bi bi-info-circle" aria-hidden="true" />
-        Column checks run on the server when you synchronize. A file that fails any check is rejected whole — nothing is half-imported.
+        Every file is read and checked here before anything is sent. The server checks it again on arrival, and imports each file in one transaction — all rows, or none.
       </p>
     </div>
   );

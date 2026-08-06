@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import useCountUp from '../../hooks/useCountUp';
-import { BRIEF_LINES, PLATFORM_HEALTH, greetingFor } from './data';
+import { greetingFor } from './data';
 
 const EASE = [.16, 1, .3, 1];
 const RADIUS = 70;
@@ -28,10 +28,14 @@ function Line({ line }) {
   );
 }
 
-export default function AdminBrief({ onReview, onReady }) {
+// `brief` is the platform totals from toBrief(). The ring is catalogue
+// coverage — how many registered businesses have imported anything — rather
+// than an invented health score, because that is a number the API can answer.
+export default function AdminBrief({ brief, onReview, onReady }) {
   const [shown, setShown] = useState(0);
-  const score = useCountUp(PLATFORM_HEALTH.score, { duration: 1700, delay: 300 });
-  const revealing = shown < BRIEF_LINES.length;
+  const lines = brief.lines;
+  const score = useCountUp(brief.coverage, { duration: 1700, delay: 300 });
+  const revealing = shown < lines.length;
 
   useEffect(() => {
     if (!revealing) { onReady?.(); return undefined; }
@@ -51,22 +55,22 @@ export default function AdminBrief({ onReview, onReady }) {
 
       <div className="ad-brief-score">
         <div className="ad-gauge">
-          <svg viewBox="0 0 164 164" role="img" aria-label={`Platform health ${PLATFORM_HEALTH.score} out of 100`}>
+          <svg viewBox="0 0 164 164" role="img" aria-label={`${brief.coverage}% of businesses hold a catalogue`}>
             <circle className="ad-gauge-track" cx="82" cy="82" r={RADIUS} />
             <motion.circle
               className="ad-gauge-arc"
               cx="82" cy="82" r={RADIUS}
               initial={{ pathLength: 0 }}
-              animate={{ pathLength: PLATFORM_HEALTH.score / 100 }}
+              animate={{ pathLength: brief.coverage / 100 }}
               transition={{ duration: 1.7, delay: .3, ease: EASE }}
             />
           </svg>
           <div className="ad-gauge-value">
             <strong>{Math.round(score)}</strong>
-            <span>/100</span>
+            <span>%</span>
           </div>
         </div>
-        <p className="ad-verdict"><span className="ad-dot" aria-hidden="true" />Platform status: <b>{PLATFORM_HEALTH.status}</b></p>
+        <p className="ad-verdict"><span className="ad-dot" aria-hidden="true" />{brief.coverageLabel}</p>
       </div>
 
       <div className="ad-brief-body">
@@ -93,7 +97,7 @@ export default function AdminBrief({ onReview, onReady }) {
 
         <ul className="ad-brief-lines" aria-live="polite">
           <AnimatePresence initial={false}>
-            {BRIEF_LINES.slice(0, shown).map((line) => <Line key={line.id} line={line} />)}
+            {lines.slice(0, shown).map((line) => <Line key={line.id} line={line} />)}
           </AnimatePresence>
         </ul>
 
