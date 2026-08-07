@@ -22,7 +22,7 @@ export default function HealthHero({ health }) {
       <div className="dash-hero-copy">
         <p className="dash-eyebrow"><i className="bi bi-heart-pulse" aria-hidden="true" />Business health</p>
         <h2>
-          Your business is <em>{health.status.toLowerCase()}</em> today.
+          Your business <em>{health.status.toLowerCase()}</em> today.
         </h2>
         <p className="dash-hero-lead">
           Composed from the model's read on every analysed product: stock cover, expiry exposure and how right-sized your stock is.
