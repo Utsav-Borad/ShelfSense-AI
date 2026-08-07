@@ -1,14 +1,45 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { AuthLayout, FormAlert, FormField, SelectField, StepProgress, SubmitButton, SHOP_TYPES, composeAddress, rules } from '../../components/auth';
+import { AuthLayout, FormAlert, FormField, SelectField, StepProgress, SubmitButton, SHOP_TYPES, composeAddress, rules, PINCODE_PATTERN } from '../../components/auth';
 import { useAuth } from '../../hooks/useAuth';
 import { createBusiness } from '../../services/businessService';
+import { UnknownPincode, lookupPincode } from '../../services/pincodeService';
 
 const EASE = [.16, 1, .3, 1];
 const STEPS = ['Business details', 'Preferences', 'All set'];
-const STEP_FIELDS = [['shop_name', 'shop_type', 'address_line', 'society', 'area', 'city', 'pincode', 'phone', 'gst_number'], ['currency', 'low_stock_threshold', 'expiry_window'], []];
+const STEP_FIELDS = [['shop_name', 'shop_type', 'address_line', 'society', 'area', 'city', 'state', 'pincode', 'phone', 'gst_number'], ['currency', 'low_stock_threshold', 'expiry_window'], []];
+
+// What the PIN field says about itself, per lookup state.
+const PIN_HINT = {
+  idle: 'City and state are filled in from your PIN code.',
+  loading: 'Checking this PIN code…',
+  found: 'PIN code verified.',
+  unknown: '',
+  failed: '',
+};
+
+// The tick / spinner / cross inside the PIN field.
+function PinStatus({ status }) {
+  if (status === 'loading') {
+    return (
+      <motion.i
+        className="bi bi-arrow-repeat auth-input-trailing"
+        animate={{ rotate: 360 }}
+        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+        aria-label="Checking PIN code"
+      />
+    );
+  }
+  if (status === 'found') {
+    return <i className="bi bi-check-circle-fill auth-input-trailing is-ok" aria-label="PIN code verified" />;
+  }
+  if (status === 'unknown' || status === 'failed') {
+    return <i className="bi bi-exclamation-circle-fill auth-input-trailing is-bad" aria-label="PIN code not verified" />;
+  }
+  return null;
+}
 
 const variants = {
   enter: (dir) => ({ opacity: 0, x: dir > 0 ? 34 : -34 }),
@@ -22,15 +53,112 @@ export default function BusinessSetupPage() {
   const [[step, direction], setStep] = useState([0, 0]);
   const [formError, setFormError] = useState('');
 
-  const { register, handleSubmit, trigger, getValues, formState: { errors, isSubmitting } } = useForm({
+  const {
+    register, handleSubmit, trigger, getValues, setValue, watch,
+    formState: { errors, isSubmitting },
+  } = useForm({
     mode: 'onTouched',
     defaultValues: {
       shop_name: '', shop_type: '', phone: '', gst_number: '',
-      address_line: '', society: '', area: '', city: '', pincode: '',
+      address_line: '', society: '', area: '', city: '', state: '', pincode: '',
       currency: 'INR', low_stock_threshold: '10', expiry_window: '30',
       email_reports: true, ai_alerts: true,
     },
   });
+
+  // --- PIN code verification -------------------------------------------
+  // City and state are never typed. They arrive from India Post's directory,
+  // and the form refuses to move on until the PIN entered has been confirmed
+  // to exist — so an address can't be saved with a city that isn't in it.
+  const pincode = watch('pincode');
+  const [lookup, setLookup] = useState({ status: 'idle', pincode: '', message: '' });
+  // Every post office India Post lists under the verified PIN. One PIN usually
+  // covers several localities, so this becomes the Area dropdown rather than
+  // being guessed at in a text box.
+  const [localities, setLocalities] = useState([]);
+  // Read inside the validation rule, which react-hook-form may call with a
+  // stale closure otherwise.
+  const verifiedRef = useRef('');
+
+  useEffect(() => {
+    const value = String(pincode || '').trim();
+
+    // Anything that isn't a complete PIN clears whatever was filled in, so a
+    // half-edited code can never leave last attempt's city behind.
+    if (!PINCODE_PATTERN.test(value)) {
+      verifiedRef.current = '';
+      setLookup({ status: 'idle', pincode: '', message: '' });
+      setLocalities([]);
+      if (getValues('city') || getValues('state') || getValues('area')) {
+        setValue('city', '');
+        setValue('state', '');
+        setValue('area', '');
+      }
+      return undefined;
+    }
+
+    if (verifiedRef.current === value) return undefined;
+
+    let active = true;
+    setLookup({ status: 'loading', pincode: value, message: '' });
+
+    async function find() {
+      try {
+        const place = await lookupPincode(value);
+        if (!active) return;
+        setValue('city', place.city, { shouldValidate: true });
+        setValue('state', place.state, { shouldValidate: true });
+        setLocalities(place.localities);
+        // A single-locality PIN has nothing to choose, so choose it for them.
+        setValue(
+          'area',
+          place.localities.length === 1 ? place.localities[0] : '',
+          { shouldValidate: false },
+        );
+        verifiedRef.current = value;
+        setLookup({ status: 'found', pincode: value, message: `${place.city}, ${place.state}` });
+        trigger('pincode');
+      } catch (error) {
+        if (!active) return;
+        verifiedRef.current = '';
+        setValue('city', '');
+        setValue('state', '');
+        setValue('area', '');
+        setLocalities([]);
+        setLookup({
+          status: error instanceof UnknownPincode ? 'unknown' : 'failed',
+          pincode: value,
+          message: error.message,
+        });
+        trigger('pincode');
+      }
+    }
+
+    // A short pause so a lookup isn't fired on every keystroke of the sixth
+    // digit being corrected.
+    const timer = setTimeout(find, 250);
+    return () => { active = false; clearTimeout(timer); };
+  }, [pincode, setValue, getValues, trigger]);
+
+  // The gate. Even if every other rule passes, an unverified PIN blocks the
+  // step — this is what makes "wrong data is never accepted" true rather than
+  // just likely.
+  const pincodeRules = {
+    ...rules.pincode,
+    validate: (value) => (
+      verifiedRef.current === String(value || '').trim()
+        || 'Wait for this PIN code to be verified, or correct it.'
+    ),
+  };
+
+  // The area has to be one India Post actually lists under that PIN. A stale
+  // value left over from a previous code is rejected here, not just hidden.
+  const areaRules = {
+    required: 'Please choose your area.',
+    validate: (value) => (
+      localities.includes(value) || 'Choose an area from the list.'
+    ),
+  };
 
   const goNext = async () => {
     const valid = await trigger(STEP_FIELDS[step], { shouldFocus: true });
@@ -42,6 +170,13 @@ export default function BusinessSetupPage() {
   // held locally until a settings endpoint exists for them.
   const onSubmit = async (values) => {
     setFormError('');
+    // Last line of defence: the submit handler itself will not send an address
+    // whose PIN was not confirmed by the lookup.
+    if (verifiedRef.current !== String(values.pincode || '').trim()) {
+      setFormError('Please enter a PIN code we can verify before saving.');
+      setStep([0, -1]);
+      return;
+    }
     try {
       const response = await createBusiness({
         shop_name: values.shop_name.trim(),
@@ -94,10 +229,52 @@ export default function BusinessSetupPage() {
                         <FormField label="Flat / House / Shop no." icon="bi-house" placeholder="B-402" error={errors.address_line?.message} field={register('address_line', rules.addressLine)} />
                         <FormField label="Building / Society" icon="bi-buildings" placeholder="Shanti Residency" error={errors.society?.message} field={register('society', rules.society)} />
                       </div>
-                      <FormField label="Area / Locality" icon="bi-signpost" placeholder="Satellite" error={errors.area?.message} field={register('area', rules.area)} />
+                      {/* The PIN code drives the three fields under it. */}
+                      <FormField
+                        label="PIN code"
+                        icon="bi-mailbox"
+                        placeholder="380015"
+                        inputMode="numeric"
+                        maxLength={6}
+                        autoComplete="postal-code"
+                        hint={PIN_HINT[lookup.status] || PIN_HINT.idle}
+                        error={errors.pincode?.message || (lookup.status === 'unknown' || lookup.status === 'failed' ? lookup.message : '')}
+                        trailing={<PinStatus status={lookup.status} />}
+                        field={register('pincode', pincodeRules)}
+                      />
+                      {/* Every post office under that PIN. Choosing from the
+                          list means the locality always belongs to the code
+                          above it, which typing could never guarantee. */}
+                      <SelectField
+                        label="Area / Locality"
+                        placeholder={localities.length ? 'Choose your area' : 'Enter a PIN code first'}
+                        options={localities}
+                        disabled={localities.length === 0}
+                        hint={localities.length > 1 ? `${localities.length} areas under this PIN code.` : ''}
+                        error={errors.area?.message}
+                        field={register('area', areaRules)}
+                      />
                       <div className="auth-grid-2">
-                        <FormField label="City" icon="bi-geo-alt" placeholder="Ahmedabad" error={errors.city?.message} field={register('city', rules.city)} />
-                        <FormField label="PIN code" icon="bi-mailbox" placeholder="380015" inputMode="numeric" maxLength={6} error={errors.pincode?.message} field={register('pincode', rules.pincode)} />
+                        {/* Read-only on purpose: these come from India Post, so
+                            they cannot disagree with the PIN code above. */}
+                        <FormField
+                          label="City"
+                          icon="bi-geo-alt"
+                          placeholder="Filled from your PIN code"
+                          readOnly
+                          tabIndex={-1}
+                          error={errors.city?.message}
+                          field={register('city', rules.city)}
+                        />
+                        <FormField
+                          label="State"
+                          icon="bi-map"
+                          placeholder="Filled from your PIN code"
+                          readOnly
+                          tabIndex={-1}
+                          error={errors.state?.message}
+                          field={register('state', rules.state)}
+                        />
                       </div>
                     </fieldset>
                     <div className="auth-grid-2">

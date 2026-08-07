@@ -46,19 +46,33 @@ export async function profile() {
 }
 
 /** POST /auth/password-reset/  body: { email }
- *  Always succeeds, whether or not the email is registered. When the backend
- *  has no SMTP credentials configured it returns data.reset_token so the reset
- *  screen can still be reached during development. */
+ *  Emails a 6-digit code. Always succeeds, whether or not the email is
+ *  registered, so the endpoint cannot be used to discover who has an account.
+ *  With no SMTP credentials configured the backend returns data.code so the
+ *  flow still works in development. */
 export async function requestPasswordReset(payload) {
   try {
     const { data } = await apiClient.post('auth/password-reset/', payload);
     return data;
   } catch (error) {
-    throw normalizeError(error, 'We could not send the reset link. Please try again.');
+    throw normalizeError(error, 'We could not send the code. Please try again.');
   }
 }
 
-/** POST /auth/password-reset/confirm/  body: { token, password, password_confirmation } */
+/** POST /auth/password-reset/verify/  body: { email, code }
+ *  Checks the code without spending it, so the screen only asks for a new
+ *  password once the code is known to be good. */
+export async function verifyResetCode(payload) {
+  try {
+    const { data } = await apiClient.post('auth/password-reset/verify/', payload);
+    return data;
+  } catch (error) {
+    throw normalizeError(error, 'We could not check that code. Please try again.');
+  }
+}
+
+/** POST /auth/password-reset/confirm/
+ *  body: { email, code, password, password_confirmation } */
 export async function resetPassword(payload) {
   try {
     const { data } = await apiClient.post('auth/password-reset/confirm/', payload);
@@ -132,6 +146,6 @@ export async function getAdminBusinesses() {
 
 export default {
   register, login, logout, profile, updateProfile, requestPasswordReset,
-  resetPassword, getUsers, updateUser, getAdminOverview, getAdminAccounts,
-  getAdminBusinesses,
+  verifyResetCode, resetPassword, getUsers, updateUser, getAdminOverview,
+  getAdminAccounts, getAdminBusinesses,
 };

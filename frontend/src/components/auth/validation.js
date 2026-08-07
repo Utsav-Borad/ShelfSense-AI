@@ -10,6 +10,8 @@ export const PINCODE_PATTERN = /^[1-9][0-9]{5}$/;
 // Place names: letters plus the usual separators. No digits, so a keyboard
 // mash of letters is still possible — but the PIN code catches those.
 export const PLACE_PATTERN = /^[A-Za-z][A-Za-z\s.'()\-/,]*$/;
+// The emailed password reset code.
+export const OTP_PATTERN = /^[0-9]{6}$/;
 
 export const rules = {
   fullName: {
@@ -52,14 +54,23 @@ export const rules = {
     minLength: { value: 2, message: 'That looks a little short.' },
     maxLength: { value: 120, message: 'Please keep this under 120 characters.' },
   },
-  city: {
-    required: 'Please enter your city.',
-    pattern: { value: PLACE_PATTERN, message: 'City should not contain numbers.' },
-    maxLength: { value: 80, message: 'Please keep this under 80 characters.' },
-  },
   pincode: {
     required: 'Please enter your PIN code.',
     pattern: { value: PINCODE_PATTERN, message: 'Enter a valid 6-digit PIN code.' },
+  },
+  // City and state are filled from the PIN code lookup and are not typed, so
+  // these only guard against a value arriving empty.
+  city: {
+    required: 'Enter a PIN code above and we will fill this in.',
+  },
+  state: {
+    required: 'Enter a PIN code above and we will fill this in.',
+  },
+  // The 6-digit password reset code. Only the shape is checked here; whether
+  // the code is correct is the backend's decision.
+  otp: {
+    required: 'Enter the 6-digit code we emailed you.',
+    pattern: { value: OTP_PATTERN, message: 'The code is 6 digits.' },
   },
   phone: {
     required: 'Please enter a contact number.',
@@ -77,10 +88,14 @@ export const rules = {
 export const SHOP_TYPES = ['Grocery', 'Medical', 'Bakery', 'Dairy', 'Cosmetic', 'Organic food', 'Frozen food', 'Pet food', 'Other'];
 
 // Joins the address parts into the single string the backend stores, in the
-// standard comma-separated order used on Indian ID documents:
-//   "B-402, Shanti Residency, Satellite, Ahmedabad, 380015"
+// standard comma-separated order used on Indian ID documents. City and state
+// come from the PIN code lookup, so the tail of the address is verified data:
+//   "B-402, Shanti Residency, Satellite, Ahmedabad, Gujarat, 380015"
 export function composeAddress(values) {
-  return [values.address_line, values.society, values.area, values.city, values.pincode]
+  return [
+    values.address_line, values.society, values.area,
+    values.city, values.state, values.pincode,
+  ]
     .map((part) => String(part ?? '').trim())
     .filter(Boolean)
     .join(', ');

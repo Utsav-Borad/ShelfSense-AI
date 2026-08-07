@@ -9,6 +9,7 @@ from .permissions import IsAdminRole
 from .serializers import (
     LoginSerializer,
     LogoutSerializer,
+    PasswordResetCodeSerializer,
     PasswordResetConfirmSerializer,
     ProfileUpdateSerializer,
     PasswordResetRequestSerializer,
@@ -17,12 +18,14 @@ from .serializers import (
     UserSerializer,
 )
 from .services import (
+    InvalidResetCode,
     blacklist_refresh_token,
-    build_password_reset_token,
+    create_password_reset_code,
     create_token_response,
     refresh_access_token,
     send_password_reset_email,
     smtp_is_configured,
+    verify_password_reset_code,
 )
 
 
@@ -85,15 +88,23 @@ class TokenRefreshView(APIView):
         return Response({"status": True, "message": "Token refreshed.", "data": tokens})
 
 
+def _reset_code_error(error):
+    """Turn a rejected code into the project's 400 shape."""
+    return Response(
+        {"status": False, "message": "Validation Error", "errors": {"code": [str(error)]}},
+        status=status.HTTP_400_BAD_REQUEST,
+    )
+
+
 class PasswordResetRequestView(APIView):
-    """Start a password reset.
+    """Step 1 — email a one-time code.
 
     The response is deliberately identical whether or not the email exists, so
     the endpoint cannot be used to discover which addresses are registered.
 
-    The reset link is emailed. When SMTP credentials are not configured, mail
-    goes to the console instead and the token is also returned in the response
-    so the reset screen stays reachable in development.
+    No link is sent. When SMTP credentials are not configured the mail is
+    printed to the console instead, and the code is also returned in the
+    response so the flow stays usable in development.
     """
 
     permission_classes = (AllowAny,)
@@ -105,23 +116,51 @@ class PasswordResetRequestView(APIView):
         data = {}
         user = User.objects.filter(email=serializer.validated_data["email"]).first()
         if user is not None:
-            reset_token = build_password_reset_token(user)
-            delivered = send_password_reset_email(user, reset_token)
-            # Hand the token back only when a real email did not go out, so a
-            # production response never carries a usable reset credential.
+            code = create_password_reset_code(user)
+            delivered = send_password_reset_email(user, code)
+            # Hand the code back only when no real email went out, so a
+            # production response never carries a usable credential.
             if not delivered or not smtp_is_configured():
-                data["reset_token"] = reset_token
+                data["code"] = code
 
         payload = {
             "status": True,
-            "message": "If that email exists, a reset link is on its way.",
+            "message": "If that email exists, a code is on its way.",
             "data": data,
         }
         return Response(payload)
 
 
+class PasswordResetVerifyView(APIView):
+    """Step 2 — check the code without spending it.
+
+    Lets the screen move on to the new-password fields only once the code is
+    known to be good, rather than accepting a password and rejecting it after.
+    """
+
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        serializer = PasswordResetCodeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = User.objects.filter(email=serializer.validated_data["email"]).first()
+        if user is None:
+            # Same wording a wrong code gets: no hint about which part is wrong.
+            return _reset_code_error("That code is incorrect or has expired.")
+
+        try:
+            verify_password_reset_code(user, serializer.validated_data["code"])
+        except InvalidResetCode as error:
+            return _reset_code_error(error)
+
+        return Response(
+            {"status": True, "message": "Code verified.", "data": {"verified": True}}
+        )
+
+
 class PasswordResetConfirmView(APIView):
-    """Finish a password reset using the token issued above."""
+    """Step 3 — set the new password, spending the code."""
 
     permission_classes = (AllowAny,)
 
@@ -129,7 +168,21 @@ class PasswordResetConfirmView(APIView):
         serializer = PasswordResetConfirmSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        user = serializer.validated_data["user"]
+        user = User.objects.filter(email=serializer.validated_data["email"]).first()
+        if user is None:
+            return _reset_code_error("That code is incorrect or has expired.")
+
+        # Re-checked here rather than trusted from the verify step: that request
+        # proves nothing about this one.
+        try:
+            verify_password_reset_code(
+                user,
+                serializer.validated_data["code"],
+                consume=True,
+            )
+        except InvalidResetCode as error:
+            return _reset_code_error(error)
+
         user.set_password(serializer.validated_data["password"])
         user.save(update_fields=["password"])
 

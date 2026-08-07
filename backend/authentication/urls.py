@@ -11,6 +11,7 @@ from .views import (
     LogoutView,
     PasswordResetConfirmView,
     PasswordResetRequestView,
+    PasswordResetVerifyView,
     ProfileView,
     RegisterView,
     TokenRefreshView,
@@ -26,6 +27,11 @@ urlpatterns = [
     path("users/<int:user_id>/", AdminUserDetailView.as_view(), name="user-detail"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token-refresh"),
     path("password-reset/", PasswordResetRequestView.as_view(), name="password-reset"),
+    path(
+        "password-reset/verify/",
+        PasswordResetVerifyView.as_view(),
+        name="password-reset-verify",
+    ),
     path(
         "password-reset/confirm/",
         PasswordResetConfirmView.as_view(),

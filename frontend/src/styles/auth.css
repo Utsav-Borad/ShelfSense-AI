@@ -210,3 +210,26 @@
 @media (prefers-reduced-motion: reduce) {
   .auth-spinner { animation-duration: 1.6s; }
 }
+
+/* --------------------------------------------- PIN code lookup status */
+/* The tick, spinner or warning shown inside the PIN field while India Post
+   is consulted. Sits where the password eye sits, so the padding rule that
+   already exists (.has-trailing) keeps text clear of it. */
+.auth-input-trailing {
+  position: absolute;
+  right: 14px;
+  font-size: 14px;
+  color: var(--muted);
+  pointer-events: none;
+}
+.auth-input-trailing.is-ok { color: var(--success); }
+.auth-input-trailing.is-bad { color: var(--danger); }
+
+/* City and state are filled from the PIN code, never typed. Showing them as
+   quieter, non-editable fields says so without needing a caption. */
+.auth-input[readonly] {
+  background: color-mix(in srgb, var(--muted) 8%, transparent);
+  color: var(--text);
+  cursor: default;
+}
+.auth-input[readonly]:focus { border-color: var(--border); box-shadow: none; }
