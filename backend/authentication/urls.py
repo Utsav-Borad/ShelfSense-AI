@@ -7,6 +7,7 @@ from .admin_views import (
     AdminUserDetailView,
 )
 from .views import (
+    AccountDeactivateView,
     LoginView,
     LogoutView,
     PasswordResetConfirmView,
@@ -23,6 +24,11 @@ urlpatterns = [
     path("login/", LoginView.as_view(), name="login"),
     path("logout/", LogoutView.as_view(), name="logout"),
     path("profile/", ProfileView.as_view(), name="profile"),
+    path(
+        "profile/deactivate/",
+        AccountDeactivateView.as_view(),
+        name="profile-deactivate",
+    ),
     path("users/", UserListView.as_view(), name="user-list"),
     path("users/<int:user_id>/", AdminUserDetailView.as_view(), name="user-detail"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token-refresh"),

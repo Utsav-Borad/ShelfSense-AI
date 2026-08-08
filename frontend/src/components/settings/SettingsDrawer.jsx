@@ -6,7 +6,7 @@ const EASE = [.16, 1, .3, 1];
 
 // One drawer serving three jobs — change password, export data, delete account
 // — because they share a shape and only differ in what they ask for.
-export default function SettingsDrawer({ kind, onClose, onConfirm }) {
+export default function SettingsDrawer({ kind, onClose, onConfirm, error = '' }) {
   const [password, setPassword] = useState({ current: '', next: '', confirm: '' });
   const [visible, setVisible] = useState(false);
   const [confirmText, setConfirmText] = useState('');
@@ -27,16 +27,23 @@ export default function SettingsDrawer({ kind, onClose, onConfirm }) {
   const meta = {
     password: { title: 'Change password', icon: 'bi-key', eyebrow: 'Security' },
     export: { title: 'Export your data', icon: 'bi-download', eyebrow: 'Data & privacy' },
-    delete: { title: 'Delete your account', icon: 'bi-trash3', eyebrow: 'Data & privacy' },
+    deactivate: { title: 'Deactivate your account', icon: 'bi-person-dash', eyebrow: 'Data & privacy' },
   }[kind] || {};
 
   const passwordsMatch = password.next.length >= 8 && password.next === password.confirm;
   const canSubmit = kind === 'password' ? passwordsMatch && password.current.length > 0
-    : kind === 'delete' ? confirmText.trim().toUpperCase() === 'DELETE'
+    : kind === 'deactivate' ? confirmText.trim().toUpperCase() === 'DEACTIVATE'
       : true;
 
-  function submit() {
+  // Deactivation talks to the API, so the page owns the outcome and this
+  // drawer waits for it. The others are still local-only.
+  async function submit() {
     setBusy(true);
+    if (kind === 'deactivate') {
+      await onConfirm(kind);
+      setBusy(false);
+      return;
+    }
     setTimeout(() => { onConfirm(kind); setBusy(false); onClose(); }, 900);
   }
 
@@ -57,7 +64,7 @@ export default function SettingsDrawer({ kind, onClose, onConfirm }) {
             transition={{ duration: .42, ease: EASE }}
           >
             <header className="st-drawer-head">
-              <span className={`st-drawer-icon${kind === 'delete' ? ' is-danger' : ''}`}>
+              <span className={`st-drawer-icon${kind === 'deactivate' ? ' is-danger' : ''}`}>
                 <i className={`bi ${meta.icon}`} aria-hidden="true" />
               </span>
               <div>
@@ -114,27 +121,40 @@ export default function SettingsDrawer({ kind, onClose, onConfirm }) {
                 </>
               )}
 
-              {kind === 'delete' && (
+              {kind === 'deactivate' && (
                 <>
                   <p className="st-drawer-lead">
-                    This permanently removes your account, your business and every synchronized record. It cannot be undone,
-                    and support cannot recover it afterwards.
+                    You will be signed out immediately, and this email will stop working at
+                    sign-in. Nothing is deleted.
                   </p>
+                  <ul className="st-drawer-list">
+                    {[
+                      'Your business, products and suppliers stay exactly as they are',
+                      'Every synchronized sales record is kept',
+                      'Reports and AI predictions remain available once reactivated',
+                    ].map((item) => (
+                      <li key={item}><i className="bi bi-check-lg" aria-hidden="true" />{item}</li>
+                    ))}
+                  </ul>
                   <ul className="st-drawer-list is-danger">
-                    {['418 products and their history', '2,140 synchronized sales records', '10 suppliers', 'All reports and AI predictions'].map((item) => (
+                    {[
+                      'You cannot sign in again with this email',
+                      'You cannot undo this yourself — an administrator has to reactivate you',
+                    ].map((item) => (
                       <li key={item}><i className="bi bi-x-lg" aria-hidden="true" />{item}</li>
                     ))}
                   </ul>
                   <label className="st-field">
-                    <span className="st-field-label">Type <b>DELETE</b> to confirm</span>
+                    <span className="st-field-label">Type <b>DEACTIVATE</b> to confirm</span>
                     <span className="st-input">
-                      <input value={confirmText} onChange={(e) => setConfirmText(e.target.value)} placeholder="DELETE" aria-label="Type DELETE to confirm" />
+                      <input value={confirmText} onChange={(e) => setConfirmText(e.target.value)} placeholder="DEACTIVATE" aria-label="Type DEACTIVATE to confirm" />
                     </span>
                   </label>
-                  <p className="st-note">
-                    <i className="bi bi-info-circle" aria-hidden="true" />
-                    Interface only — no account is deleted and no request is sent.
-                  </p>
+                  {error && (
+                    <p className="st-drawer-error" role="alert">
+                      <i className="bi bi-exclamation-circle" aria-hidden="true" />{error}
+                    </p>
+                  )}
                 </>
               )}
             </div>
@@ -142,12 +162,12 @@ export default function SettingsDrawer({ kind, onClose, onConfirm }) {
             <footer className="st-drawer-foot">
               <button
                 type="button"
-                className={`st-btn ${kind === 'delete' ? 'st-btn-danger' : 'st-btn-primary'}`}
+                className={`st-btn ${kind === 'deactivate' ? 'st-btn-danger' : 'st-btn-primary'}`}
                 onClick={submit}
                 disabled={!canSubmit || busy}
               >
                 {busy ? <><span className="st-spinner" aria-hidden="true" />Working…</> : (
-                  kind === 'password' ? 'Update password' : kind === 'export' ? 'Prepare export' : 'Delete permanently'
+                  kind === 'password' ? 'Update password' : kind === 'export' ? 'Prepare export' : 'Deactivate account'
                 )}
               </button>
               <button type="button" className="st-btn st-btn-ghost" onClick={onClose}>Cancel</button>

@@ -267,11 +267,15 @@ export function DataPanel({ onExport, onDelete }) {
 
       <div className="st-danger">
         <div>
-          <strong>Delete account</strong>
-          <small>Permanently removes your account, your business and every synchronized record. This cannot be undone.</small>
+          <strong>Deactivate account</strong>
+          <small>
+            Signs you out and blocks this email from signing in again. Your business,
+            products and sales history are kept — an administrator can switch the
+            account back on.
+          </small>
         </div>
         <button type="button" className="st-btn st-btn-danger" onClick={onDelete}>
-          <i className="bi bi-trash3" aria-hidden="true" />Delete account
+          <i className="bi bi-person-dash" aria-hidden="true" />Deactivate account
         </button>
       </div>
     </>

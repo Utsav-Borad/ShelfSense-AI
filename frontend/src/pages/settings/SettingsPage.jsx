@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
-import { profile as fetchProfile, updateProfile } from '../../services/authService';
+import {
+  deactivateAccount, profile as fetchProfile, updateProfile,
+} from '../../services/authService';
 import { getBusiness, updateBusiness } from '../../services/businessService';
 import { useTheme } from '../../hooks/useTheme';
 import {
@@ -35,7 +38,8 @@ function PanelSkeleton() {
 }
 
 export default function SettingsPage() {
-  const { user, business, updateUser, completeBusinessSetup } = useAuth();
+  const { user, business, updateUser, completeBusinessSetup, logout } = useAuth();
+  const navigate = useNavigate();
   const { theme } = useTheme();
 
   const [ready, setReady] = useState(false);
@@ -62,6 +66,7 @@ export default function SettingsPage() {
   const [saveState, setSaveState] = useState('idle'); // idle | saving | saved
   const [saveError, setSaveError] = useState('');
   const [drawer, setDrawer] = useState(null);
+  const [drawerError, setDrawerError] = useState('');
 
   // The account and business are re-read from the API so this page always
   // shows what the server actually holds, not what was cached at sign-in.
@@ -170,6 +175,26 @@ export default function SettingsPage() {
     setDirty(false);
   }
 
+  // The drawer's confirm button. Only deactivation reaches the API — the
+  // password and export drawers are still local-only.
+  async function handleDrawerConfirm(kind) {
+    if (kind !== 'deactivate') {
+      setSaveState('saved');
+      return;
+    }
+
+    setDrawerError('');
+    try {
+      await deactivateAccount();
+      // Clear the session here rather than waiting for the next 401: the
+      // account is off, so nothing this tab does next would work anyway.
+      logout();
+      navigate('/login', { replace: true });
+    } catch (failure) {
+      setDrawerError(failure.detail || 'We could not deactivate your account.');
+    }
+  }
+
   const themeLabel = `Warm Beige (${theme === 'dark' ? 'Dark' : 'Light'})`;
   const active = SECTIONS.find((item) => item.id === section);
 
@@ -187,7 +212,7 @@ export default function SettingsPage() {
         />
       );
       case 'ai': return <AiPanel values={values} set={set} />;
-      case 'data': return <DataPanel onExport={() => setDrawer('export')} onDelete={() => setDrawer('delete')} />;
+      case 'data': return <DataPanel onExport={() => setDrawer('export')} onDelete={() => setDrawer('deactivate')} />;
       case 'integrations': return (
         <IntegrationsPanel
           integrations={integrations}
@@ -303,7 +328,12 @@ export default function SettingsPage() {
         )}
       </AnimatePresence>
 
-      <SettingsDrawer kind={drawer} onClose={() => setDrawer(null)} onConfirm={() => setSaveState('saved')} />
+      <SettingsDrawer
+        kind={drawer}
+        error={drawerError}
+        onClose={() => { setDrawer(null); setDrawerError(''); }}
+        onConfirm={handleDrawerConfirm}
+      />
     </div>
   );
 }

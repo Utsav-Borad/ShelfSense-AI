@@ -92,6 +92,20 @@ export async function updateProfile(payload) {
   }
 }
 
+/** POST /auth/profile/deactivate/ — switch off the signed-in account.
+ *  Nothing is deleted; the account simply stops being able to sign in, and an
+ *  administrator has to switch it back on. The refresh token goes with the
+ *  request so the session cannot be extended afterwards. */
+export async function deactivateAccount() {
+  try {
+    const refresh = localStorage.getItem('refresh_token');
+    const { data } = await apiClient.post('auth/profile/deactivate/', { refresh });
+    return data;
+  } catch (error) {
+    throw normalizeError(error, 'We could not deactivate your account.');
+  }
+}
+
 /** GET /auth/users/ — administrators only; a `user` role gets 403. */
 export async function getUsers() {
   try {
@@ -146,6 +160,6 @@ export async function getAdminBusinesses() {
 
 export default {
   register, login, logout, profile, updateProfile, requestPasswordReset,
-  verifyResetCode, resetPassword, getUsers, updateUser, getAdminOverview,
-  getAdminAccounts, getAdminBusinesses,
+  verifyResetCode, resetPassword, deactivateAccount, getUsers, updateUser,
+  getAdminOverview, getAdminAccounts, getAdminBusinesses,
 };

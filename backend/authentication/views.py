@@ -213,6 +213,51 @@ class ProfileView(APIView):
         return Response(payload)
 
 
+class AccountDeactivateView(APIView):
+    """Let an account holder switch their own account off.
+
+    Nothing is deleted. `is_active` goes False, which is the same flag an
+    administrator toggles, so the account keeps its business, products and
+    sales and still appears — marked Inactive — in the admin console and in
+    Django admin. Only signing in stops working.
+
+    Reversing it is deliberately not self-service: a deactivated account cannot
+    sign in to undo this, so an administrator has to turn it back on.
+    """
+
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        user = request.user
+        if not user.is_active:
+            payload = {
+                "status": False,
+                "message": "Validation Error",
+                "errors": {"account": ["This account is already deactivated."]},
+            }
+            return Response(payload, status=status.HTTP_400_BAD_REQUEST)
+
+        user.is_active = False
+        user.save(update_fields=["is_active"])
+
+        # Retire the refresh token that came with the request, so the session
+        # cannot be extended after the account is off. Sent by the client;
+        # absent or already spent is not an error worth failing the request for.
+        refresh_token = request.data.get("refresh")
+        if refresh_token:
+            try:
+                blacklist_refresh_token(refresh_token)
+            except TokenError:
+                pass
+
+        payload = {
+            "status": True,
+            "message": "Your account has been deactivated.",
+            "data": {"is_active": False},
+        }
+        return Response(payload)
+
+
 class UserListView(APIView):
     """List every account. Administrators only.
 

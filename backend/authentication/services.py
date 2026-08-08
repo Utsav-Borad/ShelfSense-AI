@@ -6,9 +6,11 @@ from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
 from django.core.mail import send_mail
 from django.utils import timezone
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import PasswordResetCode
+from .models import PasswordResetCode, User
 from .serializers import UserSerializer
 
 # One-time code policy. Six digits is what people expect from an SMS or email
@@ -39,8 +41,18 @@ def refresh_access_token(refresh_token):
 
     SIMPLE_JWT sets ROTATE_REFRESH_TOKENS and BLACKLIST_AFTER_ROTATION, so the
     caller is handed a fresh refresh token and the old one is retired.
+
+    A refresh token outlives an access token by days, so the account is checked
+    here as well: without this, somebody deactivated a minute ago could keep
+    minting access tokens for the rest of the week.
     """
     token = RefreshToken(refresh_token)
+
+    user_id = token.payload.get(api_settings.USER_ID_CLAIM)
+    account = User.objects.filter(pk=user_id).first()
+    if account is None or not account.is_active:
+        raise TokenError("This account is no longer active.")
+
     access_token = str(token.access_token)
 
     # Retire the presented refresh token, then re-stamp this one with a new id,
